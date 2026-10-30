@@ -193,6 +193,16 @@ input:focus{outline:2px solid var(--accent);outline-offset:1px}
 .tab{font-family:"Space Grotesk",Inter,sans-serif;font-size:15px}
 footer{max-width:1200px;margin:0 auto;padding:0 16px 40px;color:var(--mute);font-size:13px;display:flex;flex-wrap:wrap;gap:6px 16px}
 @media(max-width:600px){h1{font-size:28px}.brand .mark{width:40px;height:40px}.sub{font-size:15.5px}.bar{padding:8px}}
+
+.dd{position:relative}
+.ddbtn{display:inline-flex;align-items:center;justify-content:space-between;gap:14px;min-width:128px;padding:9px 12px 9px 14px;background:var(--card)}
+.ddbtn svg{width:12px;height:12px;flex:0 0 auto;color:var(--mute);transition:transform .15s}
+.ddbtn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.ddlist{position:absolute;top:calc(100% + 6px);left:0;min-width:100%;margin:0;padding:4px;list-style:none;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);z-index:60}
+.ddlist li{padding:8px 12px 8px 28px;border-radius:8px;cursor:pointer;white-space:nowrap;position:relative;outline:0}
+.ddlist li:hover,.ddlist li:focus{background:var(--accentbg)}
+.ddlist li[aria-selected="true"]{font-weight:700;color:var(--accent)}
+.ddlist li[aria-selected="true"]::before{content:"✓";position:absolute;left:9px}
 </style>
 </head>
 <body>
@@ -220,7 +230,7 @@ footer{max-width:1200px;margin:0 auto;padding:0 16px 40px;color:var(--mute);font
   <div class="bar">
     <span class="chip" id="fixture">pydantic 1.10.27 → 2.14.2</span>
     <button class="primary" id="play"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>Play recorded run</button>
-    <select id="speed" aria-label="Replay speed" title="Replay speed"><option value="1">1× speed</option><option value="2" selected>2× speed</option><option value="4">4× speed</option><option value="8">8× speed</option></select>
+    <div class="dd" id="speedDd"><input type="hidden" id="speed" value="2"><button type="button" class="ddbtn" id="speedBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="speedList" aria-label="Replay speed" title="Replay speed"><span id="speedLbl">2× speed</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><ul class="ddlist" id="speedList" role="listbox" aria-label="Replay speed" hidden><li role="option" tabindex="-1" data-v="1">1× speed</li><li role="option" tabindex="-1" data-v="2" aria-selected="true">2× speed</li><li role="option" tabindex="-1" data-v="4">4× speed</li><li role="option" tabindex="-1" data-v="8">8× speed</li></ul></div>
     <div class="livebox" id="liveBox" hidden>
       <div class="codewrap">
         <input id="code" type="password" placeholder="Access code" aria-label="Access code for live runs" aria-describedby="codeNote" autocomplete="off">
@@ -689,6 +699,31 @@ function setHow(open) { howBtn.setAttribute("aria-expanded", open); $("#howList"
 howBtn.onclick = () => setHow(howBtn.getAttribute("aria-expanded") !== "true");
 setHow(innerWidth > 600);
 
+
+(function () {  // custom replay-speed menu: a native <select> popup opens over the control; this one always opens downwards
+  const dd = $("#speedDd"), btn = $("#speedBtn"), list = $("#speedList"), items = [...list.children];
+  const open = (on, focusSel) => {
+    list.hidden = !on; btn.setAttribute("aria-expanded", on);
+    if (on) (items.find(i => i.getAttribute("aria-selected") === "true") || items[0]).focus();
+    else if (focusSel) btn.focus();
+  };
+  const pick = li => {
+    items.forEach(i => i.setAttribute("aria-selected", i === li));
+    $("#speed").value = li.dataset.v; $("#speedLbl").textContent = li.textContent; open(false, true);
+  };
+  btn.addEventListener("click", () => open(list.hidden));
+  btn.addEventListener("keydown", e => { if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); open(true); } });
+  items.forEach((li, i) => {
+    li.addEventListener("click", () => pick(li));
+    li.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown") { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); items[(i + items.length - 1) % items.length].focus(); }
+      else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(li); }
+      else if (e.key === "Escape" || e.key === "Tab") { open(false, e.key === "Escape"); }
+    });
+  });
+  document.addEventListener("click", e => { if (!dd.contains(e.target)) open(false); });
+})();
 reset(); showPlaceholder(); setBusy(false);
 try {  // judges' link: https://…/#code=XYZ fills the field; the fragment never reaches the server
   const m = /[#&]code=([^&]+)/.exec(location.hash);
