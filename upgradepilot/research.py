@@ -10,9 +10,14 @@ def _client() -> TavilyClient:
     return TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
 
-def search_docs(query: str, max_results: int = 4) -> list:
-    """Basic-depth Tavily search; returns [{title, url, snippet}]."""
-    res = _client().search(query, max_results=max_results, search_depth="basic")
+def search_docs(query: str, max_results: int = 4, domains: list | None = None) -> list:
+    """Basic-depth Tavily search; returns [{title, url, snippet}]. `domains` restricts it to official docs,
+    falling back to an open search only when the restricted one finds nothing."""
+    res = {"results": []}
+    if domains:
+        res = _client().search(query, max_results=max_results, search_depth="basic", include_domains=domains)
+    if not res["results"]:
+        res = _client().search(query, max_results=max_results, search_depth="basic")
     return [{"title": r["title"], "url": r["url"], "snippet": r["content"][:400]} for r in res["results"]]
 
 

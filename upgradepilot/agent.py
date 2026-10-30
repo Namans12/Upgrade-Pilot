@@ -123,7 +123,7 @@ class Pipeline:
             if name == "run_python":
                 return sandbox.run_python(work, self.py_new, args["code"])
             if name == "search_docs":
-                hits = research.search_docs(args["query"])
+                hits = research.search_docs(args["query"], domains=["docs.pydantic.dev"])
                 self.sources += [h["url"] for h in hits]
                 self.emit("search", query=args["query"], urls=[h["url"] for h in hits])
                 return json.dumps(hits)
