@@ -8,6 +8,9 @@ import httpx
 
 BASE_URL = "https://api.tokenfactory.nebius.com/v1"
 _prices: dict = {}
+# Conservative per-token price for models missing from the catalog ($1.00/M input, $3.00/M output),
+# so the budget cap still bites instead of seeing a free model.
+FALLBACK_PRICE = (1.00 / 1e6, 3.00 / 1e6)
 
 
 def load_prices() -> dict:
@@ -31,6 +34,7 @@ class Call:
     completion_tokens: int
     seconds: float
     cost_usd: float
+    price_source: str = "catalog"  # "fallback" = model not in the catalog, cost is a conservative estimate
 
 
 @dataclass
@@ -38,9 +42,10 @@ class Ledger:
     calls: list = field(default_factory=list)
 
     def record(self, step: str, model: str, usage, seconds: float) -> Call:
-        pp, cp = load_prices().get(model, (0.0, 0.0))
+        prices = load_prices()
+        (pp, cp), source = (prices[model], "catalog") if model in prices else (FALLBACK_PRICE, "fallback")
         pt, ct = usage.prompt_tokens, usage.completion_tokens
-        call = Call(step, model, pt, ct, round(seconds, 2), pt * pp + ct * cp)
+        call = Call(step, model, pt, ct, round(seconds, 2), pt * pp + ct * cp, source)
         self.calls.append(call)
         return call
 
@@ -57,6 +62,7 @@ class Ledger:
                 "completion_tokens": sum(c.completion_tokens for c in self.calls),
                 "est_cost_usd": round(sum(c.cost_usd for c in self.calls), 6),
                 "seconds": round(sum(c.seconds for c in self.calls), 1),
+                "fallback_priced_models": sorted({c.model for c in self.calls if c.price_source == "fallback"}),
                 "by_model": by_model}
 
 

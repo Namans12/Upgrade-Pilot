@@ -1,5 +1,5 @@
-"""Checks that a green run is an honest one: tests untouched, right version,
-no pydantic.v1 escape hatch, no deprecated v1 APIs left in the source."""
+"""Checks that a green run is an honest one: nothing outside app/ touched, right version,
+exactly the baseline number of tests passing, no pydantic.v1 escape hatch, no deprecated v1 APIs left."""
 import re
 from pathlib import Path
 
@@ -21,24 +21,30 @@ BANNED = [
 ]
 
 
-def check(work: Path, python: Path, original_tests: dict, target_version: str) -> dict:
+def check(work: Path, python: Path, original_hashes: dict, target_version: str, expected_tests: int) -> dict:
+    """original_hashes: sandbox.hash_outside_app of the pristine copy; expected_tests: passed count of the baseline run."""
     results = []
-    now = sandbox.hash_tree(work / "tests")
-    results.append({"check": "tests unchanged", "ok": now == original_tests,
-                    "detail": "" if now == original_tests else "test files were modified"})
+    final = sandbox.run_tests(work, python)  # first, so anything the run itself writes is hashed below
+    now = sandbox.hash_outside_app(work)
+    changed = sorted(f for f in now.keys() | original_hashes.keys() if now.get(f) != original_hashes.get(f))
+    results.append({"check": "tests and project files unchanged", "ok": not changed,
+                    "detail": "" if not changed else "modified outside app/: " + ", ".join(changed[:10])})
 
     version = sandbox.installed_version(work, python)
     results.append({"check": f"pydantic == {target_version}", "ok": version == target_version, "detail": version})
 
     problems = []
     for f in sorted((work / "app").rglob("*.py")):
-        text = f.read_text()
+        text = f.read_text(errors="replace")
         for pattern, label in BANNED:
             if re.search(pattern, text):
                 problems.append(f"{f.relative_to(work)}: {label}")
     results.append({"check": "no deprecated v1 APIs in app/", "ok": not problems, "detail": "; ".join(problems)})
 
-    final = sandbox.run_tests(work, python)
-    results.append({"check": "tests pass on target version", "ok": final["status"] == "passed",
-                    "detail": final["output"].splitlines()[-1] if final["output"] else ""})
+    passed = sandbox.clean_pass_count(final["output"])
+    ok = final["status"] == "passed" and passed == expected_tests
+    detail = final["output"].splitlines()[-1] if final["output"] else ""
+    if final["status"] == "passed" and not ok:
+        detail = f"expected exactly {expected_tests} passed, none failed/skipped/deselected; got: {detail}"
+    results.append({"check": "tests pass on target version", "ok": ok, "detail": detail})
     return {"ok": all(r["ok"] for r in results), "checks": results}

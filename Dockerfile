@@ -12,6 +12,11 @@ COPY . .
 
 # Prebuild the two environments the demo project is tested against, so a run never installs packages
 RUN ./scripts/build_envs.sh
+# The sandbox uid below must be able to read and run them
+RUN chmod -R a+rX /app/demo
+
+# Model-run code (pytest, diagnostic snippets) drops to this unprivileged uid, so it cannot read the server's secrets
+ENV UP_SANDBOX_UID=65534
 
 # Secrets are provided at runtime: NEBIUS_API_KEY, TAVILY_API_KEY, UP_ACCESS_CODE (enables live runs)
 EXPOSE 8000

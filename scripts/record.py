@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+load_dotenv(ROOT / ".env")
 load_dotenv(ROOT.parent / ".env")
 
 from upgradepilot.runner import run_preset  # noqa: E402

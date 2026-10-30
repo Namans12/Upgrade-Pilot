@@ -13,8 +13,8 @@ LIGHTNING = "nvidia/Nemotron-3_5-Lightning"
 
 
 def main() -> None:
-    load_dotenv(ROOT.parent / ".env")
     load_dotenv(ROOT / ".env")
+    load_dotenv(ROOT.parent / ".env")
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="nvidia/nemotron-3-super-120b-a12b")
     ap.add_argument("--helper-model", default=LIGHTNING)

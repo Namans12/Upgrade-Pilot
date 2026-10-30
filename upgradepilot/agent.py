@@ -53,17 +53,27 @@ def failure_score(output: str) -> int:
 
 STALL_RUNS = 3  # identical failure counts across this many test runs = stalled
 
+# The model may only write app/**/*.py, and never a file that Python or pytest would treat as a hook
+# or that would shadow an installed package.
+BLOCKED_NAMES = {"conftest", "sitecustomize", "usercustomize"}
+BLOCKED_PREFIXES = ("pydantic", "pytest", "_pytest", "pluggy", "typing_extensions", "annotated_types")
+
+
+def app_sources(work: Path) -> dict:
+    return {f.relative_to(work).as_posix(): f.read_text(errors="replace") for f in sorted((work / "app").rglob("*.py"))}
+
 
 class Pipeline:
     def __init__(self, fixture: Path, venv_old: Path, venv_new: Path, model: str, helper_model: str,
                  emit: Callable[..., None] = lambda *a, **k: None, max_turns: int = 40, budget_usd: float = 0.5,
-                 fallback_model: str | None = None):
+                 fallback_model: str | None = None, max_seconds: float | None = None):
         self.fixture, self.model, self.helper_model = fixture, model, helper_model
         self.fallback_model, self.scores = fallback_model, []
         self.py_old, self.py_new = venv_old / "bin" / "python", venv_new / "bin" / "python"
         self.emit, self.max_turns, self.budget = emit, max_turns, budget_usd
         self.ledger = Ledger()
-        self.client = OpenAI(base_url=BASE_URL, api_key=os.environ["NEBIUS_API_KEY"], timeout=120)
+        self.max_seconds = max_seconds if max_seconds is not None else float(os.environ.get("UP_MAX_RUN_SECONDS", "300"))
+        self.client = OpenAI(base_url=BASE_URL, api_key=os.environ["NEBIUS_API_KEY"], timeout=90, max_retries=1)
         self.sources: list = []
 
     # -- model plumbing ---------------------------------------------------------------
@@ -85,8 +95,12 @@ class Pipeline:
         if root not in p.parents:
             raise PermissionError("path outside project")
         top = p.relative_to(root).parts[0]
-        if write and top != "app":
-            raise PermissionError("writes are limited to files under app/")
+        if write:
+            stem = p.stem.lower()
+            if top != "app" or p.suffix.lower() != ".py":
+                raise PermissionError("writes are limited to .py files under app/")
+            if stem in BLOCKED_NAMES or stem.startswith(BLOCKED_PREFIXES):
+                raise PermissionError(f"{p.name} is not an allowed file name")
         if not write and top not in ("app", "tests", "requirements.txt"):
             raise PermissionError("only app/, tests/ and requirements.txt are readable")
         return p
@@ -120,14 +134,21 @@ class Pipeline:
     # -- pipeline -----------------------------------------------------------------------
     def run(self, package="pydantic", old="1.10.27", new="2.14.2") -> dict:
         work = sandbox.new_workdir(self.fixture)
-        original = {f: p for f, p in sandbox.hash_tree(work).items()}
-        tests_hash = sandbox.hash_tree(work / "tests")
-        original_app = {f: (work / f).read_text() for f in original if f.startswith("app/")}
+        try:
+            return self._run(work, package, old, new)
+        finally:
+            sandbox.remove_workdir(work)
+
+    def _run(self, work: Path, package: str, old: str, new: str) -> dict:
+        t0 = time.time()
+        original_hashes = sandbox.hash_outside_app(work)
+        original_app = app_sources(work)
 
         self.emit("stage", name="baseline", detail=f"tests on {package} {old}")
         base = sandbox.run_tests(work, self.py_old)
         self.emit("tests", phase="baseline", status=base["status"], output=base["output"])
-        if base["status"] != "passed":
+        expected_tests = sandbox.clean_pass_count(base["output"])
+        if base["status"] != "passed" or not expected_tests:
             return self._report(work, original_app, "inconclusive", "baseline tests are not green")
 
         self.emit("stage", name="bump", detail=f"tests on {package} {new}, source unchanged")
@@ -152,12 +173,15 @@ class Pipeline:
             if self._over_budget():
                 reason = "budget cap reached"
                 break
+            if time.time() - t0 > self.max_seconds:
+                reason = "time limit reached"
+                break
             msg = self._chat(f"repair turn {turn + 1}", self.model, messages=messages, tools=TOOLS,
                              tool_choice="auto", max_tokens=6000, temperature=0.2)
             messages.append(msg.model_dump(exclude_none=True))
             if not msg.tool_calls:
                 self.emit("model_says", text=msg.content or "")
-                v = verify.check(work, self.py_new, tests_hash, new)
+                v = verify.check(work, self.py_new, original_hashes, new, expected_tests)
                 if v["ok"]:
                     outcome, reason = "success", "all checks passed"
                     break
@@ -170,9 +194,13 @@ class Pipeline:
                     args = json.loads(tc.function.arguments or "{}")
                 except json.JSONDecodeError:
                     args = {}
+                bad_args = not isinstance(args, dict)
+                if bad_args:
+                    args = {}
                 self.emit("tool", name=tc.function.name, args={k: (v if len(str(v)) < 200 else str(v)[:200] + "…")
                                                                for k, v in args.items()})
-                result = self._tool(work, tc.function.name, args)
+                result = ("ERROR: tool arguments must be a JSON object" if bad_args
+                          else self._tool(work, tc.function.name, args))
                 tests_passed = tests_passed or (tc.function.name == "run_tests" and result.startswith("[passed]"))
                 messages.append({"role": "tool", "tool_call_id": tc.id, "content": result[:8000]})
             if (self.fallback_model and self.model != self.fallback_model and len(self.scores) >= STALL_RUNS
@@ -181,13 +209,13 @@ class Pipeline:
                           reason=f"{self.scores[-1]} failures unchanged across {STALL_RUNS} test runs")
                 self.model = self.fallback_model
             if tests_passed:
-                v = verify.check(work, self.py_new, tests_hash, new)
+                v = verify.check(work, self.py_new, original_hashes, new, expected_tests)
                 if v["ok"]:
                     outcome, reason = "success", "all checks passed"
                     break
                 messages.append({"role": "user", "content": "Tests pass but verification failed: " + json.dumps(
                     [c for c in v["checks"] if not c["ok"]])})
-        v = verify.check(work, self.py_new, tests_hash, new)
+        v = verify.check(work, self.py_new, original_hashes, new, expected_tests)
         if outcome == "success" and not v["ok"]:
             outcome, reason = "inconclusive", "final verification failed"
         self.emit("verify", **v)
@@ -204,11 +232,14 @@ class Pipeline:
 
     def _report(self, work: Path, original_app: dict, outcome: str, reason: str, v: dict | None = None) -> dict:
         diff = []
-        for rel, old_text in original_app.items():
-            new_text = (work / rel).read_text() if (work / rel).exists() else ""
+        current = app_sources(work)
+        for rel in sorted(original_app.keys() | current.keys()):  # includes files the model added or deleted
+            old_text, new_text = original_app.get(rel, ""), current.get(rel, "")
             old_text = old_text if old_text.endswith("\n") or not old_text else old_text + "\n"
             new_text = new_text if new_text.endswith("\n") or not new_text else new_text + "\n"
-            diff += difflib.unified_diff(old_text.splitlines(True), new_text.splitlines(True), f"a/{rel}", f"b/{rel}")
+            diff += difflib.unified_diff(old_text.splitlines(True), new_text.splitlines(True),
+                                         f"a/{rel}" if rel in original_app else "/dev/null",
+                                         f"b/{rel}" if rel in current else "/dev/null")
         report = {"outcome": outcome, "reason": reason, "diff": "".join(diff), "verification": v,
                   "sources": sorted(set(s for s in self.sources if s)), "ledger": self.ledger.summary(),
                   "calls": [c.__dict__ for c in self.ledger.calls]}
