@@ -7,7 +7,7 @@
 
 **An agent that migrates a breaking dependency upgrade (pydantic v1 to v2) and proves it with the project's own, unchanged tests.**
 
-**[Live demo](https://upgradepilot.onrender.com)** (press *Play recorded run*; live runs need the access code from the Devpost testing instructions) · **[GitHub](https://github.com/Namans12/Upgrade-Pilot)** · **Demo video**<!-- VIDEO_URL -->
+**[Live demo](https://upgradepilot.onrender.com)** (press *Play recorded run*; live runs need the access code from the Devpost testing instructions) · **[GitHub](https://github.com/Namans12/Upgrade-Pilot)** · **[Demo video](https://youtu.be/RUo89hobDoA)**
 
 Built for the Nebius x NVIDIA Global AI Hackathon, track Coding and Agentic Engineering (also entered for Best Use of Tavily). Runs on **Nebius Token Factory** with **NVIDIA Nemotron** models and uses **Tavily** at runtime.
 
