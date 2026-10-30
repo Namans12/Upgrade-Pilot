@@ -2,12 +2,12 @@
 
 <h1 align="center">UpgradePilot</h1>
 
-[![CI](https://github.com/Namans12/Nebius/actions/workflows/ci.yml/badge.svg)](https://github.com/Namans12/Nebius/actions/workflows/ci.yml)
+[![CI](https://github.com/Namans12/Upgrade-Pilot/actions/workflows/ci.yml/badge.svg)](https://github.com/Namans12/Upgrade-Pilot/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **An agent that migrates a breaking dependency upgrade (pydantic v1 to v2) and proves it with the project's own, unchanged tests.**
 
-**[Live demo](https://upgradepilot.onrender.com)** (press *Play recorded run*; live runs need the access code from the Devpost testing instructions) · **[GitHub](https://github.com/Namans12/Nebius)** · **Demo video**<!-- VIDEO_URL -->
+**[Live demo](https://upgradepilot.onrender.com)** (press *Play recorded run*; live runs need the access code from the Devpost testing instructions) · **[GitHub](https://github.com/Namans12/Upgrade-Pilot)** · **Demo video**<!-- VIDEO_URL -->
 
 Built for the Nebius x NVIDIA Global AI Hackathon, track Coding and Agentic Engineering (also entered for Best Use of Tavily). Runs on **Nebius Token Factory** with **NVIDIA Nemotron** models and uses **Tavily** at runtime.
 
@@ -83,7 +83,7 @@ Lightning with Super escalation passed 0 of 2, and one more Ultra run failed ($0
 Requirements: Python 3.12, [uv](https://docs.astral.sh/uv/), a Nebius Token Factory key and a Tavily key.
 
 ```bash
-git clone https://github.com/Namans12/Nebius.git && cd Nebius   # the project lives in the repo root
+git clone https://github.com/Namans12/Upgrade-Pilot.git && cd Upgrade-Pilot   # the project lives in the repo root
 cp .env.example .env            # add NEBIUS_API_KEY and TAVILY_API_KEY
 uv sync
 ./scripts/build_envs.sh         # builds the pydantic 1.x and 2.x test environments
