@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UpgradePilot</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#14181f;--mute:#5b6572;--line:#e3e7ec;--accent:#4f46e5;--ok:#13795b;--okbg:#e3f6ee;--bad:#b42318;--badbg:#fdeceb;--warn:#8a5a00;--warnbg:#fff3d6;--code:#f1f3f6;--add:#e6f6ec;--del:#fdecec}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1116;--card:#161b22;--ink:#e8ecf2;--mute:#97a1af;--line:#262d38;--accent:#8b86ff;--ok:#4cc79a;--okbg:#10291f;--bad:#ff8a80;--badbg:#32171a;--warn:#f0b955;--warnbg:#33290f;--code:#10151c;--add:#102a1b;--del:#341619}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif}
+header{max-width:1200px;margin:0 auto;padding:28px 16px 8px}
+h1{margin:0;font-size:26px;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:4px 0 0}
+main{max-width:1200px;margin:0 auto;padding:12px 16px 56px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+button,input,select{font:inherit}
+button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:8px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,select{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 10px;border-radius:8px}
+.chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--card)}
+.chip.rec{background:var(--warnbg);color:var(--warn);border-color:transparent}
+.chip.live{background:var(--okbg);color:var(--ok);border-color:transparent}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:8px 0 16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:22px;letter-spacing:-.02em}
+.stat span{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.stat.ok b{color:var(--ok)}.stat.bad b{color:var(--bad)}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:16px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.panel h2{margin:0;padding:12px 16px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);border-bottom:1px solid var(--line)}
+#timeline{padding:6px 16px 14px;max-height:620px;overflow:auto}
+.stage{margin:14px 0 4px;font-weight:700}
+.stage small{color:var(--mute);font-weight:400;margin-left:6px}
+.row{display:flex;gap:8px;align-items:flex-start;padding:4px 0;color:var(--mute);font-size:13.5px}
+.row code{background:var(--code);padding:1px 6px;border-radius:5px;color:var(--ink);font-size:12.5px}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;font-weight:700}
+.pill.passed{background:var(--okbg);color:var(--ok)}.pill.failed,.pill.inconclusive{background:var(--badbg);color:var(--bad)}
+details{margin:2px 0 6px}summary{cursor:pointer;color:var(--accent);font-size:13px}
+pre{margin:6px 0;padding:10px 12px;background:var(--code);border-radius:8px;overflow:auto;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 8px}
+.tab{padding:11px 12px;border:0;border-bottom:2px solid transparent;background:none;border-radius:0;color:var(--mute);font-weight:600}
+.tab.on{color:var(--ink);border-color:var(--accent)}
+.pane{padding:14px 16px;min-height:300px;max-height:560px;overflow:auto}
+.diff{font:12px/1.55 ui-monospace,Menlo,monospace;margin:0;white-space:pre-wrap}
+.diff .a{background:var(--add);display:block}.diff .d{background:var(--del);display:block}.diff .h{color:var(--accent);display:block;font-weight:700;margin-top:8px}
+.check{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.check:last-child{border:0}.tick{font-weight:800}.tick.y{color:var(--ok)}.tick.n{color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}th{color:var(--mute);font-weight:600}
+.empty{color:var(--mute);padding:20px 0}
+.note{color:var(--mute);font-size:12.5px;margin-top:14px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <h1>UpgradePilot</h1>
+  <p class="sub">An agent that migrates a breaking dependency upgrade and proves it with the project's own unchanged tests. Nemotron on Nebius Token Factory + Tavily.</p>
+</header>
+<main>
+  <div class="bar">
+    <span class="chip" id="fixture">pydantic 1.10.27 → 2.14.2</span>
+    <button class="primary" id="play">▶ Play recorded run</button>
+    <select id="speed" title="Replay speed"><option value="1">1× speed</option><option value="4" selected>4× speed</option><option value="12">12× speed</option></select>
+    <span id="liveBox" hidden>
+      <input id="code" type="password" placeholder="Access code" autocomplete="off">
+      <button id="live">Run live</button>
+    </span>
+    <span class="chip" id="mode" hidden></span>
+  </div>
+  <div class="stats">
+    <div class="stat" id="sBase"><span>Baseline (old version)</span><b>–</b></div>
+    <div class="stat" id="sBump"><span>After version bump</span><b>–</b></div>
+    <div class="stat" id="sFinal"><span>After agent repair</span><b>–</b></div>
+    <div class="stat" id="sVerify"><span>Integrity checks</span><b>–</b></div>
+  </div>
+  <div class="grid">
+    <section class="panel"><h2>Agent timeline</h2><div id="timeline"><div class="empty">Press play to watch a run.</div></div></section>
+    <section class="panel">
+      <div class="tabs"><button class="tab on" data-t="diff">Diff</button><button class="tab" data-t="sources">Sources</button><button class="tab" data-t="verify">Verification</button><button class="tab" data-t="ledger">Cost ledger</button></div>
+      <div class="pane" id="p-diff"><div class="empty">The source diff appears when the run finishes.</div></div>
+      <div class="pane" id="p-sources" hidden></div>
+      <div class="pane" id="p-verify" hidden></div>
+      <div class="pane" id="p-ledger" hidden></div>
+    </section>
+  </div>
+  <p class="note">Passing means "passes this regression suite on the target version with the tests unmodified", not a guarantee that behaviour is preserved. Token counts are measured from the API; dollar figures are estimates from Token Factory catalog prices. Runs execute our bundled demo project only.</p>
+</main>
+<script>
+const $ = s => document.querySelector(s), esc = s => String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+let es = null, playing = 0, ledger;
+const tl = $("#timeline");
+
+function reset() {
+  tl.innerHTML = ""; ledger = {calls: 0, pt: 0, ct: 0, cost: 0, sec: 0, models: {}};
+  for (const id of ["sBase","sBump","sFinal","sVerify"]) { const e = $("#"+id); e.className = "stat"; e.querySelector("b").textContent = "–"; }
+  $("#p-diff").innerHTML = '<div class="empty">The source diff appears when the run finishes.</div>';
+  for (const k of ["sources","verify","ledger"]) $("#p-"+k).innerHTML = "";
+}
+const lastLine = o => (o || "").trim().split("\n").filter(Boolean).pop() || "";
+function stat(id, text, cls) { const e = $("#"+id); e.className = "stat " + cls; e.querySelector("b").textContent = text; }
+function row(html) { const d = document.createElement("div"); d.className = "row"; d.innerHTML = html; tl.appendChild(d); tl.scrollTop = tl.scrollHeight; }
+
+function renderLedger() {
+  const m = Object.entries(ledger.models).map(([k, v]) => `<tr><td>${esc(k.replace("nvidia/",""))}</td><td>${v.calls}</td><td>${v.pt.toLocaleString()}</td><td>${v.ct.toLocaleString()}</td><td>$${v.cost.toFixed(4)}</td></tr>`).join("");
+  $("#p-ledger").innerHTML = `<table><tr><th>Model</th><th>Calls</th><th>Prompt tok</th><th>Completion tok</th><th>Est. cost</th></tr>${m}
+    <tr><th>Total</th><th>${ledger.calls}</th><th>${ledger.pt.toLocaleString()}</th><th>${ledger.ct.toLocaleString()}</th><th>$${ledger.cost.toFixed(4)}</th></tr></table>
+    <p class="note">Model time ${ledger.sec.toFixed(0)}s. Tokens are measured; cost is estimated from catalog prices.</p>`;
+}
+
+function renderDiff(diff) {
+  if (!diff) { $("#p-diff").innerHTML = '<div class="empty">No changes were made.</div>'; return; }
+  $("#p-diff").innerHTML = '<pre class="diff">' + diff.split("\n").map(l =>
+    l.startsWith("+++")||l.startsWith("---") ? "" : l.startsWith("@@") ? `<span class="h">${esc(l)}</span>` :
+    l.startsWith("+") ? `<span class="a">${esc(l)}</span>` : l.startsWith("-") ? `<span class="d">${esc(l)}</span>` : esc(l) + "\n").join("") + "</pre>";
+}
+
+function handle(ev) {
+  const d = ev.data;
+  switch (ev.kind) {
+    case "stage": tl.insertAdjacentHTML("beforeend", `<div class="stage">${esc(d.name)}<small>${esc(d.detail)}</small></div>`); break;
+    case "tests": {
+      const sum = lastLine(d.output), failed = d.status !== "passed";
+      if (d.phase === "baseline") stat("sBase", failed ? "not green" : sum.match(/\d+ passed/)?.[0] || "passed", failed ? "bad" : "ok");
+      if (d.phase === "bump") stat("sBump", sum.match(/\d+ (failed|errors?)/)?.[0] || "failing", "bad");
+      if (d.phase === "repair") stat("sFinal", failed ? (sum.match(/\d+ failed/)?.[0] || "still failing") : sum.match(/\d+ passed/)?.[0] || "passed", failed ? "bad" : "ok");
+      row(`<span class="pill ${d.status}">${esc(d.status)}</span><span>${esc(d.phase)} tests · ${esc(sum)}<details><summary>output</summary><pre>${esc(d.output)}</pre></details></span>`); break; }
+    case "search": row(`<span>🔎</span><span>Tavily: <code>${esc(d.query)}</code>${d.extracted ? `<br>extracted <a href="${esc(d.extracted)}" target="_blank" rel="noopener">${esc(d.extracted)}</a> (${(d.chars||0).toLocaleString()} chars)` : ""}</span>`); break;
+    case "notes": row(`<span>📋</span><span>Migration checklist, condensed by Lightning from the retrieved page<details><summary>show</summary><pre>${esc(d.text)}</pre></details></span>`); break;
+    case "tool": { const a = d.args || {}; row(`<span>→</span><span><code>${esc(d.name)}</code> ${esc(a.path || a.query || (a.code ? "snippet" : ""))}</span>`); break; }
+    case "model_call": ledger.calls++; ledger.pt += d.prompt_tokens; ledger.ct += d.completion_tokens; ledger.cost += d.cost_usd; ledger.sec += d.seconds;
+      const m = ledger.models[d.model] ||= {calls: 0, pt: 0, ct: 0, cost: 0}; m.calls++; m.pt += d.prompt_tokens; m.ct += d.completion_tokens; m.cost += d.cost_usd; renderLedger(); break;
+    case "escalate": row(`<span>⬆</span><span>Escalated to <code>${esc(d.to_model)}</code>: ${esc(d.reason)}</span>`); break;
+    case "model_says": row(`<span>💬</span><span>${esc(d.text)}</span>`); break;
+    case "verify": { stat("sVerify", d.ok ? "all passed" : "failed", d.ok ? "ok" : "bad");
+      $("#p-verify").innerHTML = d.checks.map(c => `<div class="check"><span class="tick ${c.ok?"y":"n"}">${c.ok?"✓":"✗"}</span><span><b>${esc(c.check)}</b>${c.detail ? `<br><span class="sub">${esc(c.detail)}</span>` : ""}</span></div>`).join(""); break; }
+    case "report": renderDiff(d.diff);
+      $("#p-sources").innerHTML = (d.sources.length ? "<p>Pages Tavily returned and the agent used:</p>" : "<div class='empty'>No sources.</div>") + d.sources.map(u => `<div class="check"><a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></div>`).join("");
+      row(`<span class="pill ${d.outcome === "success" ? "passed" : "failed"}">${esc(d.outcome)}</span><span>${esc(d.reason)}</span>`); break;
+    case "error": row(`<span class="pill failed">error</span><span>${esc(d.message)}</span>`); break;
+  }
+}
+
+function mode(kind, text) { const m = $("#mode"); m.hidden = false; m.textContent = text; m.className = "chip " + kind; }
+
+async function playRecorded() {
+  stopAll(); reset(); const my = ++playing;
+  const res = await fetch("/api/recording");
+  if (!res.ok) { row("No recording is bundled."); return; }
+  const rec = await res.json(); mode("rec", "RECORDED RUN · a real run captured earlier, replayed");
+  let prev = 0;
+  for (const ev of rec.events) {
+    if (my !== playing) return;
+    const gap = Math.min((ev.t - prev) * 1000 / +$("#speed").value, 1200); prev = ev.t;
+    await new Promise(r => setTimeout(r, gap)); handle(ev);
+  }
+}
+
+async function runLive() {
+  stopAll(); reset(); playing++;
+  const res = await fetch("/api/run", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({access_code: $("#code").value})});
+  if (!res.ok) { const e = await res.json().catch(() => ({})); row(`<span class="pill failed">refused</span><span>${esc(e.detail || res.status)}</span>`); return; }
+  const {run_id} = await res.json(); mode("live", "LIVE RUN · calling Token Factory now");
+  es = new EventSource(`/api/run/${run_id}/events`);
+  es.onmessage = m => handle(JSON.parse(m.data));
+  es.addEventListener("end", () => es.close());
+}
+function stopAll() { playing++; if (es) { es.close(); es = null; } }
+
+$("#play").onclick = playRecorded; $("#live").onclick = runLive;
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));
+  for (const k of ["diff","sources","verify","ledger"]) $("#p-"+k).hidden = k !== t.dataset.t;
+});
+fetch("/api/config").then(r => r.json()).then(c => { $("#liveBox").hidden = !c.live_enabled; $("#play").disabled = !c.has_recording; reset(); });
+</script>
+</body>
+</html>
