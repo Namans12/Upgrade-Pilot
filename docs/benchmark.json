@@ -1,0 +1,98 @@
+[
+ {
+  "model": "super",
+  "outcome": "success",
+  "reason": "all checks passed",
+  "calls": 34,
+  "cost": 0.122416,
+  "seconds": 80.4
+ },
+ {
+  "model": "super",
+  "outcome": "success",
+  "reason": "all checks passed",
+  "calls": 33,
+  "cost": 0.097869,
+  "seconds": 73.7
+ },
+ {
+  "model": "super",
+  "outcome": "success",
+  "reason": "all checks passed",
+  "calls": 23,
+  "cost": 0.062394,
+  "seconds": 55.9
+ },
+ {
+  "model": "super",
+  "outcome": "success",
+  "reason": "all checks passed",
+  "calls": 21,
+  "cost": 0.043146,
+  "seconds": 44.2
+ },
+ {
+  "model": "super",
+  "outcome": "success",
+  "reason": "all checks passed",
+  "calls": 25,
+  "cost": 0.067918,
+  "seconds": 60.9
+ },
+ {
+  "model": "lightning",
+  "outcome": "inconclusive",
+  "reason": "turn limit reached",
+  "calls": 41,
+  "cost": 0.031254,
+  "seconds": 96.1
+ },
+ {
+  "model": "lightning",
+  "outcome": "inconclusive",
+  "reason": "turn limit reached",
+  "calls": 41,
+  "cost": 0.02752,
+  "seconds": 205.6
+ },
+ {
+  "model": "lightning",
+  "outcome": "inconclusive",
+  "reason": "turn limit reached",
+  "calls": 41,
+  "cost": 0.029888,
+  "seconds": 154.6
+ },
+ {
+  "model": "lightning",
+  "outcome": "inconclusive",
+  "reason": "turn limit reached",
+  "calls": 41,
+  "cost": 0.029003,
+  "seconds": 114.9
+ },
+ {
+  "model": "lightning",
+  "outcome": "inconclusive",
+  "reason": "turn limit reached",
+  "calls": 41,
+  "cost": 0.030181,
+  "seconds": 145.3
+ },
+ {
+  "model": "ultra",
+  "outcome": "inconclusive",
+  "reason": "turn limit reached",
+  "calls": 41,
+  "cost": 0.708938,
+  "seconds": 100.4
+ },
+ {
+  "model": "ultra",
+  "outcome": "inconclusive",
+  "reason": "turn limit reached",
+  "calls": 41,
+  "cost": 0.634235,
+  "seconds": 107.3
+ }
+]

@@ -35,7 +35,7 @@ All calls go through the OpenAI-compatible endpoint `https://api.tokenfactory.ne
 
 Counts are for the final version of the loop. Two earlier Super runs on a previous version (one reached green but the loop didn't notice, one stopped at a 25-turn limit with 20/21 passing) are excluded.
 
-Each row is repeated independent runs of the same task with a 40-turn limit (`scripts/bench.py`, results in `runs/bench.json`).
+Each row is repeated independent runs of the same task with a 40-turn limit (`scripts/bench.py`, results in `docs/benchmark.json`).
 
 | Repair model | Passed | Calls | Est. cost per run | Model time |
 |---|---|---|---|---|
