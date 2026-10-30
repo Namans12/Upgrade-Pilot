@@ -4,7 +4,7 @@ The demo video (about 2 minutes) shows a real live run on the deployed site (htt
 
 Narration, in order:
 
-1. Dependency upgrades break things. A bot opens a pull request, the tests go red, and it stops, because the fix lives in a migration guide nobody has read. UpgradePilot reads the guide, fixes the code, and proves it with the project's own, unchanged tests.
+1. Dependency upgrades break things. A bot opens a pull request, the tests go red, and it stops, because the fix is written in a migration guide nobody has read. UpgradePilot reads the guide, fixes the code, and proves it with the project's own, unchanged tests.
 2. This is a real, live run on the deployed site. A small order service on pydantic one point ten has twenty one passing tests. UpgradePilot bumps it to pydantic two point fourteen, and the same tests break: three collection errors straight away.
 3. Next, Tavily searches the official docs and extracts the migration page. Nemotron Lightning, on Nebius Token Factory, condenses it into a checklist for the failures we actually saw.
 4. Then Nemotron Super takes over, with tools. It reads files, edits only the app folder, and runs the tests on the real target version, over and over. Watch the failures fall, until none are left.
