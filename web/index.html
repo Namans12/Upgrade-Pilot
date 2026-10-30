@@ -3,178 +3,663 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>UpgradePilot</title>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--ink:#14181f;--mute:#5b6572;--line:#e3e7ec;--accent:#4f46e5;--ok:#13795b;--okbg:#e3f6ee;--bad:#b42318;--badbg:#fdeceb;--warn:#8a5a00;--warnbg:#fff3d6;--code:#f1f3f6;--add:#e6f6ec;--del:#fdecec}
-@media (prefers-color-scheme:dark){:root{--bg:#0e1116;--card:#161b22;--ink:#e8ecf2;--mute:#97a1af;--line:#262d38;--accent:#8b86ff;--ok:#4cc79a;--okbg:#10291f;--bad:#ff8a80;--badbg:#32171a;--warn:#f0b955;--warnbg:#33290f;--code:#10151c;--add:#102a1b;--del:#341619}}
+:root{--bg:#f6f7f9;--card:#fff;--ink:#14181f;--mute:#5b6572;--line:#e3e7ec;--accent:#4f46e5;--accentbg:#eceafd;--glow:rgba(79,70,229,.25);--ok:#13795b;--okbg:#e3f6ee;--bad:#b42318;--badbg:#fdeceb;--warn:#8a5a00;--warnbg:#fff3d6;--code:#f1f3f6;--add:#e6f6ec;--del:#fdecec;--addbd:#2da66f;--delbd:#d6453d;--shadow:0 6px 18px rgba(20,24,31,.10)}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1116;--card:#161b22;--ink:#e8ecf2;--mute:#97a1af;--line:#262d38;--accent:#8b86ff;--accentbg:#1f1e3d;--glow:rgba(139,134,255,.3);--ok:#4cc79a;--okbg:#10291f;--bad:#ff8a80;--badbg:#32171a;--warn:#f0b955;--warnbg:#33290f;--code:#10151c;--add:#102a1b;--del:#341619;--addbd:#3fbf86;--delbd:#ff6b61;--shadow:0 6px 18px rgba(0,0,0,.45)}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif}
-header{max-width:1200px;margin:0 auto;padding:28px 16px 8px}
-h1{margin:0;font-size:26px;letter-spacing:-.02em}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;-webkit-text-size-adjust:100%}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+header{max-width:1200px;margin:0 auto;padding:26px 16px 4px}
+h1{margin:0;font-size:28px;letter-spacing:-.02em}
 .sub{color:var(--mute);margin:4px 0 0}
-main{max-width:1200px;margin:0 auto;padding:12px 16px 56px}
-.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0;padding:0;list-style:none}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:99px;font-size:12.5px;font-weight:600;color:var(--mute);background:var(--card);border:1px solid var(--line)}
+main{max-width:1200px;margin:0 auto;padding:8px 16px 56px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 10px}
 button,input,select{font:inherit}
 button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:8px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent)}
 button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.primary:hover:not(:disabled){filter:brightness(1.08)}
+@media (prefers-color-scheme:dark){button.primary{color:#0e1116}}
 button:disabled{opacity:.5;cursor:not-allowed}
 input,select{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 10px;border-radius:8px}
-.chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--card)}
-.chip.rec{background:var(--warnbg);color:var(--warn);border-color:transparent}
-.chip.live{background:var(--okbg);color:var(--ok);border-color:transparent}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:8px 0 16px}
+.chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--card)}
+.chip.rec{background:var(--warnbg);color:var(--warn);border-color:var(--warn);font-weight:800;letter-spacing:.02em}
+.chip.live{background:var(--okbg);color:var(--ok);border-color:var(--ok);font-weight:800;letter-spacing:.02em}
+.livebox{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.livebox .codewrap{display:flex;gap:8px}
+.codenote,.notice{flex-basis:100%;font-size:14px;border-radius:8px;padding:7px 12px;background:var(--badbg);color:var(--bad);border:1px solid transparent}
+.notice{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 10px;background:var(--warnbg);color:var(--warn)}
+.notice button{padding:4px 10px;font-size:13px}
+.notice .x{margin-left:auto;border:0;background:none;color:inherit;font-size:18px;line-height:1;padding:2px 6px}
+
+/* how it works */
+.how{margin:12px 0 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px}
+.how-head{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:space-between}
+.how-toggle{border:0;background:none;padding:4px 0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);display:inline-flex;gap:8px;align-items:center}
+.how-toggle:hover:not(:disabled){color:var(--ink)}
+.how-toggle .chev{display:inline-block;transition:transform .15s;font-size:11px}
+.how-toggle[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.how-head a{font-size:13px}
+.how ol{list-style:none;margin:6px 0 4px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 14px;counter-reset:how}
+.how li{counter-increment:how;font-size:13.5px;line-height:1.4;color:var(--mute);padding-left:26px;position:relative}
+.how li::before{content:counter(how);position:absolute;left:0;top:0;width:19px;height:19px;border-radius:50%;background:var(--accentbg);color:var(--accent);font-size:12px;font-weight:800;display:grid;place-items:center}
+.how li b{color:var(--ink);font-weight:700}
+.how .tag{margin:0 2px 0 0}
+@media(max-width:900px){.how ol{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.how ol{grid-template-columns:1fr}}
+
+/* now panel */
+.now{position:sticky;top:8px;z-index:20;scroll-margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:12px 16px 12px;margin:0 0 12px}
+.now-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;min-height:26px}
+.counter{font-size:13.5px;color:var(--mute);font-variant-numeric:tabular-nums;margin-left:auto}
+.counter b{color:var(--ink)}
+.steps{display:flex;gap:6px;margin:10px 0 8px;padding:0;list-style:none}
+.steps li{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--mute);text-align:left}
+.steps li::before{content:"";display:block;height:5px;border-radius:3px;background:var(--line);margin-bottom:5px}
+.steps li.done{color:var(--ink)}.steps li.done::before{background:var(--ok)}
+.steps li.active{color:var(--accent)}.steps li.active::before{background:var(--accent);animation:pulse 1.2s ease-in-out infinite}
+.steps li.fail{color:var(--bad)}.steps li.fail::before{background:var(--bad)}
+@keyframes pulse{50%{opacity:.35}}
+.nowtext{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nowtext .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mute);margin-right:8px;vertical-align:middle}
+.running .nowtext .dot{background:var(--accent);animation:pulse 1s ease-in-out infinite}
+
+/* summary */
+.summary{border:1px solid var(--ok);background:var(--okbg);border-radius:14px;padding:14px 16px;margin:0 0 12px}
+.summary.bad{border-color:var(--bad);background:var(--badbg)}
+.sum-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:10px}
+.sum-head b{font-size:18px}
+.sum-head .pill{background:var(--card);border:1px solid currentColor;text-transform:uppercase;letter-spacing:.04em}
+.sum-src{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--mute);letter-spacing:.03em;text-transform:uppercase}
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sum-grid div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.sum-grid span{display:block;color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.sum-grid b{font-size:20px;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.sum-grid small{color:var(--mute);font-size:12.5px;font-weight:400;margin-left:3px;white-space:nowrap}
+.sum-grid b+small{display:block;margin:0}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:0 0 14px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-.stat b{display:block;font-size:22px;letter-spacing:-.02em}
-.stat span{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.stat .lbl{color:var(--mute);font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;display:block}
+.stat b{display:block;font-size:30px;line-height:1.15;letter-spacing:-.02em;margin:2px 0;overflow-wrap:anywhere}
+.stat .cap{display:block;color:var(--mute);font-size:13px;line-height:1.35}
 .stat.ok b{color:var(--ok)}.stat.bad b{color:var(--bad)}
+.spark{margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.spark .sp-t{font-size:11.5px;color:var(--mute);line-height:1.3}
+.spark .cols{display:flex;gap:4px;align-items:flex-end;height:62px}
+.spark .sp{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;font-variant-numeric:tabular-nums}
+.spark .sp i{font-style:normal;font-size:11.5px;font-weight:700;color:var(--bad);line-height:1.3}
+.spark .sp .x{font-size:10.5px;font-weight:600;color:var(--mute)}
+.spark .sp s{display:block;width:100%;max-width:30px;min-height:3px;background:var(--bad);border-radius:3px 3px 0 0;transform-origin:bottom;text-decoration:none;animation:grow .45s ease-out}
+.spark .sp.err s{background:repeating-linear-gradient(135deg,var(--bad) 0 3px,transparent 3px 6px);border:1px solid var(--bad);border-bottom:0}
+.spark .sp.ok i{color:var(--ok)}.spark .sp.ok s{background:var(--ok)}
+.spark .sp-k{font-size:11px;color:var(--mute)}
+@keyframes grow{from{transform:scaleY(0)}}
+.stat.pop{animation:pop .6s ease}
+@keyframes pop{0%{transform:scale(1);box-shadow:0 0 0 0 var(--glow)}35%{transform:scale(1.04);box-shadow:0 0 0 7px var(--glow)}100%{transform:scale(1);box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.spark .sp s,.how-toggle .chev{animation:none;transition:none}.stat.pop,.steps li.active::before,.running .nowtext .dot{animation:none}}
+
 .grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:16px}
-@media(max-width:900px){.grid{grid-template-columns:1fr}}
+@media(max-width:900px){.grid{grid-template-columns:1fr}#timeline{max-height:none!important;overflow:visible!important}}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .panel h2{margin:0;padding:12px 16px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);border-bottom:1px solid var(--line)}
-#timeline{padding:6px 16px 14px;max-height:620px;overflow:auto}
-.stage{margin:14px 0 4px;font-weight:700}
-.stage small{color:var(--mute);font-weight:400;margin-left:6px}
-.row{display:flex;gap:8px;align-items:flex-start;padding:4px 0;color:var(--mute);font-size:13.5px}
-.row code{background:var(--code);padding:1px 6px;border-radius:5px;color:var(--ink);font-size:12.5px}
-.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;font-weight:700}
+#timeline{padding:6px 16px 14px;max-height:640px;overflow:auto}
+.idle{text-align:center;padding:36px 12px;color:var(--mute)}
+.idle .ic{display:inline-grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--accentbg);color:var(--accent);font-size:20px;margin-bottom:10px}
+.idle b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.idle p{margin:0 auto;max-width:34em}
+.stage{margin:16px 0 4px;font-weight:700;font-size:15px;text-transform:capitalize}
+.stage small{color:var(--mute);font-weight:400;margin-left:6px;text-transform:none;font-size:14px}
+.row{display:flex;gap:8px;align-items:flex-start;padding:4px 0;color:var(--mute);font-size:14.5px;line-height:1.45}
+.row>.ic{flex:0 0 22px;text-align:center}
+.row>.bd{min-width:0;overflow-wrap:anywhere}
+.row.faint{font-size:13px;opacity:.78;padding:2px 0}
+.row code{background:var(--code);padding:1px 6px;border-radius:5px;color:var(--ink);font-size:13.5px}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12.5px;font-weight:700}
 .pill.passed{background:var(--okbg);color:var(--ok)}.pill.failed,.pill.inconclusive{background:var(--badbg);color:var(--bad)}
-details{margin:2px 0 6px}summary{cursor:pointer;color:var(--accent);font-size:13px}
-pre{margin:6px 0;padding:10px 12px;background:var(--code);border-radius:8px;overflow:auto;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word}
-.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 8px}
-.tab{padding:11px 12px;border:0;border-bottom:2px solid transparent;background:none;border-radius:0;color:var(--mute);font-weight:600}
+.tag{display:inline-block;padding:0 7px;margin-right:4px;border-radius:99px;font-size:11.5px;font-weight:700;border:1px solid var(--line);color:var(--mute);background:var(--code);white-space:nowrap;vertical-align:1px}
+.tag.m{color:var(--accent);background:var(--accentbg);border-color:transparent}
+.tag.t{color:var(--ok);background:var(--okbg);border-color:transparent}
+details{margin:2px 0 6px}summary{cursor:pointer;color:var(--accent);font-size:13.5px}
+pre{margin:6px 0;padding:10px 12px;background:var(--code);border-radius:8px;overflow:auto;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+.tab{flex:0 0 auto;padding:11px 12px;border:0;border-bottom:2px solid transparent;background:none;border-radius:0;color:var(--mute);font-weight:600;white-space:nowrap}
 .tab.on{color:var(--ink);border-color:var(--accent)}
-.pane{padding:14px 16px;min-height:300px;max-height:560px;overflow:auto}
-.diff{font:12px/1.55 ui-monospace,Menlo,monospace;margin:0;white-space:pre-wrap}
-.diff .a{background:var(--add);display:block}.diff .d{background:var(--del);display:block}.diff .h{color:var(--accent);display:block;font-weight:700;margin-top:8px}
+.tab .count{display:inline-block;min-width:20px;padding:0 6px;margin-left:5px;border-radius:99px;background:var(--accentbg);color:var(--accent);font-size:12px;text-align:center}
+.pane{padding:14px 16px;min-height:300px;max-height:620px;overflow:auto}
+.pane[hidden]{display:none}
+.toolbar{display:flex;justify-content:flex-end;margin:0 0 8px}
+.toolbar button{padding:5px 10px;font-size:13px}
+.dfile{margin:0 0 14px;border:1px solid var(--line);border-radius:10px;overflow:clip}
+.fbar{position:sticky;top:-14px;z-index:2;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--accentbg);color:var(--ink);font:600 13px/1.3 ui-monospace,Menlo,monospace;border-bottom:1px solid var(--line)}
+.fbar .cnt{font-weight:700;white-space:nowrap}.cnt i{font-style:normal}.cnt .p{color:var(--ok)}.cnt .m{color:var(--bad)}
+.dscroll{overflow-x:auto}
+.dlines{font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word}
+.ln{display:block;padding:0 12px;border-left:3px solid transparent}
+.ln.a{background:var(--add);border-left-color:var(--addbd)}
+.ln.d{background:var(--del);border-left-color:var(--delbd)}
+.ln.h{color:var(--accent);font-weight:700;background:var(--code);margin-top:0}
+@media(max-width:900px){.dlines{white-space:pre;word-break:normal;min-width:max-content}.ln{min-width:max-content}}
 .check{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
 .check:last-child{border:0}.tick{font-weight:800}.tick.y{color:var(--ok)}.tick.n{color:var(--bad)}
-table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}th{color:var(--mute);font-weight:600}
+.src{padding:8px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.src:last-child{border:0}
+.rs h3{margin:16px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute)}.rs h3:first-child{margin-top:0}
+.rs ul.hits{margin:4px 0 0;padding-left:18px;font-size:13.5px;overflow-wrap:anywhere}
+.rs ul.hits li{margin:2px 0}
+.rs .meta{color:var(--mute);font-size:13.5px}
+.rs pre.lightning{border:1px solid var(--line)}
+.src ul{margin:6px 0 0;padding-left:18px;font-size:13.5px;color:var(--mute)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}th{color:var(--mute);font-weight:600}
+.tscroll{overflow-x:auto}
 .empty{color:var(--mute);padding:20px 0}
-.note{color:var(--mute);font-size:12.5px;margin-top:14px}
+.note{color:var(--mute);font-size:13px;margin-top:14px}
 a{color:var(--accent)}
+@media(max-width:600px){#sFinal{grid-column:1/-1}.sum-grid{grid-template-columns:1fr 1fr}.sum-grid b{font-size:18px}.chip .more{display:none}.now{padding:8px 12px;top:6px}.counter{font-size:12.5px;margin-left:0}.steps{margin:6px 0}.now-head{gap:2px 10px}.stat .lbl{font-size:12px}header{padding-top:18px}h1{font-size:24px}.steps li{font-size:12px}.nowtext{font-size:15px}.stat b{font-size:28px}.livebox{flex-basis:100%}.livebox .codewrap{flex:1 1 100%}.livebox input{flex:1;min-width:0}}
 </style>
 </head>
 <body>
 <header>
   <h1>UpgradePilot</h1>
-  <p class="sub">An agent that migrates a breaking dependency upgrade and proves it with the project's own unchanged tests. Nemotron on Nebius Token Factory + Tavily.</p>
+  <p class="sub">An agent that migrates a breaking dependency upgrade and proves it with the project's own unchanged tests.</p>
+  <ul class="badges" aria-label="Powered by">
+    <li class="badge">Nemotron 3 Super</li><li class="badge">Nemotron 3.5 Lightning</li><li class="badge">Nebius Token Factory</li><li class="badge">Tavily</li>
+  </ul>
 </header>
 <main>
+  <section class="how" aria-label="How it works">
+    <div class="how-head">
+      <button type="button" class="how-toggle" id="howBtn" aria-expanded="true" aria-controls="howList"><span class="chev" aria-hidden="true">▶</span>How it works</button>
+      <a href="https://github.com/Namans12/Nebius" target="_blank" rel="noopener noreferrer">Source code on GitHub</a>
+    </div>
+    <ol id="howList">
+      <li><b>Run tests</b> on the old version to prove a green baseline.</li>
+      <li><b>Bump</b> the dependency; the same tests now break.</li>
+      <li><span class="tag t">Tavily</span> reads the migration guide, <span class="tag m">Nemotron Lightning</span> condenses it.</li>
+      <li><span class="tag m">Nemotron Super</span> repairs with tools, then we <b>verify</b> with the unchanged tests.</li>
+    </ol>
+  </section>
   <div class="bar">
     <span class="chip" id="fixture">pydantic 1.10.27 → 2.14.2</span>
     <button class="primary" id="play">▶ Play recorded run</button>
-    <select id="speed" title="Replay speed"><option value="1">1× speed</option><option value="4" selected>4× speed</option><option value="12">12× speed</option></select>
-    <span id="liveBox" hidden>
-      <input id="code" type="password" placeholder="Access code" autocomplete="off">
-      <button id="live">Run live</button>
-    </span>
-    <span class="chip" id="mode" hidden></span>
+    <select id="speed" aria-label="Replay speed" title="Replay speed"><option value="1">1× speed</option><option value="2" selected>2× speed</option><option value="4">4× speed</option><option value="8">8× speed</option></select>
+    <div class="livebox" id="liveBox" hidden>
+      <div class="codewrap">
+        <input id="code" type="password" placeholder="Access code" aria-label="Access code for live runs" aria-describedby="codeNote" autocomplete="off">
+        <button id="live">Run live</button>
+      </div>
+      <div class="codenote" id="codeNote" role="alert" hidden></div>
+    </div>
   </div>
+  <div class="notice" id="notice" role="status" hidden></div>
+
+  <section class="now" id="now" aria-label="Run progress">
+    <div class="now-head">
+      <span class="chip" id="mode" hidden></span>
+      <span class="counter" id="counter" aria-label="Running totals"></span>
+    </div>
+    <ol class="steps" id="steps" aria-label="Pipeline steps">
+      <li data-s="baseline">Baseline</li><li data-s="bump">Bump</li><li data-s="research">Research</li><li data-s="repair">Repair</li><li data-s="verify">Verify</li>
+    </ol>
+    <div class="nowtext" id="nowText"><span class="dot"></span><span id="nowMsg">Idle</span></div>
+  </section>
+
+  <section class="summary" id="summary" hidden aria-live="polite"></section>
+
   <div class="stats">
-    <div class="stat" id="sBase"><span>Baseline (old version)</span><b>–</b></div>
-    <div class="stat" id="sBump"><span>After version bump</span><b>–</b></div>
-    <div class="stat" id="sFinal"><span>After agent repair</span><b>–</b></div>
-    <div class="stat" id="sVerify"><span>Integrity checks</span><b>–</b></div>
+    <div class="stat" id="sBase"><span class="lbl">Baseline (old version)</span><b>–</b><span class="cap"></span></div>
+    <div class="stat" id="sBump"><span class="lbl">After version bump</span><b>–</b><span class="cap"></span></div>
+    <div class="stat" id="sFinal"><span class="lbl">After agent repair</span><b>–</b><span class="cap"></span><div class="spark" id="spark" hidden></div></div>
+    <div class="stat" id="sVerify"><span class="lbl">Integrity checks</span><b>–</b><span class="cap"></span></div>
   </div>
   <div class="grid">
-    <section class="panel"><h2>Agent timeline</h2><div id="timeline"><div class="empty">Press play to watch a run.</div></div></section>
+    <section class="panel"><h2 id="tlh">Agent timeline</h2><div id="timeline" aria-live="polite" aria-labelledby="tlh"></div></section>
     <section class="panel">
-      <div class="tabs"><button class="tab on" data-t="diff">Diff</button><button class="tab" data-t="sources">Sources</button><button class="tab" data-t="verify">Verification</button><button class="tab" data-t="ledger">Cost ledger</button></div>
-      <div class="pane" id="p-diff"><div class="empty">The source diff appears when the run finishes.</div></div>
-      <div class="pane" id="p-sources" hidden></div>
-      <div class="pane" id="p-verify" hidden></div>
-      <div class="pane" id="p-ledger" hidden></div>
+      <div class="tabs" role="tablist" aria-label="Run details">
+        <button class="tab on" role="tab" id="t-research" aria-selected="true" aria-controls="p-research" tabindex="0" data-t="research">Research</button>
+        <button class="tab" role="tab" id="t-diff" aria-selected="false" aria-controls="p-diff" tabindex="-1" data-t="diff">Diff</button>
+        <button class="tab" role="tab" id="t-sources" aria-selected="false" aria-controls="p-sources" tabindex="-1" data-t="sources">Sources<span class="count" id="srcCount" hidden></span></button>
+        <button class="tab" role="tab" id="t-verify" aria-selected="false" aria-controls="p-verify" tabindex="-1" data-t="verify">Verification</button>
+        <button class="tab" role="tab" id="t-ledger" aria-selected="false" aria-controls="p-ledger" tabindex="-1" data-t="ledger">Cost ledger</button>
+      </div>
+      <div class="pane rs" role="tabpanel" id="p-research" aria-labelledby="t-research" tabindex="0"></div>
+      <div class="pane" role="tabpanel" id="p-diff" aria-labelledby="t-diff" tabindex="0" hidden></div>
+      <div class="pane" role="tabpanel" id="p-sources" aria-labelledby="t-sources" tabindex="0" hidden></div>
+      <div class="pane" role="tabpanel" id="p-verify" aria-labelledby="t-verify" tabindex="0" hidden></div>
+      <div class="pane" role="tabpanel" id="p-ledger" aria-labelledby="t-ledger" tabindex="0" hidden></div>
     </section>
   </div>
   <p class="note">Passing means "passes this regression suite on the target version with the tests unmodified", not a guarantee that behaviour is preserved. Token counts are measured from the API; dollar figures are estimates from Token Factory catalog prices. Runs execute our bundled demo project only.</p>
 </main>
 <script>
-const $ = s => document.querySelector(s), esc = s => String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-let es = null, playing = 0, ledger;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl = u => /^https?:\/\//i.test(String(u)) ? String(u) : "#";
+const WAKE = "Waking the server, try again in a few seconds.";
+const STEPS = ["baseline", "bump", "research", "repair", "verify"];
+const EMPTY_RESEARCH = '<div class="empty">Research appears when Tavily searches for the migration guide: the query, the pages it found, the page it read, and the checklist Nemotron Lightning condenses from it.</div>';
+const EMPTY_DIFF = '<div class="empty">The source diff appears when the run finishes.</div>';
+const CAPS = {
+  sBase: "The project's own tests, old version",
+  sBump: "Same tests, new version, code untouched",
+  sFinal: "After the agent edits the source",
+  sVerify: "Tests unmodified, version pinned, no v1 APIs"
+};
 const tl = $("#timeline");
+let es = null, playing = 0, busy = false, hasRec = true;
+let research, fseq, ledger, repairRuns, lastModel, lastFinal, verifyChecks, srcMap, lastDiff, userTab, stepState, mode_ = "";
 
-function reset() {
-  tl.innerHTML = ""; ledger = {calls: 0, pt: 0, ct: 0, cost: 0, sec: 0, models: {}};
-  for (const id of ["sBase","sBump","sFinal","sVerify"]) { const e = $("#"+id); e.className = "stat"; e.querySelector("b").textContent = "–"; }
-  $("#p-diff").innerHTML = '<div class="empty">The source diff appears when the run finishes.</div>';
-  for (const k of ["sources","verify","ledger"]) $("#p-"+k).innerHTML = "";
-}
+/* ---------- small helpers ---------- */
 const lastLine = o => (o || "").trim().split("\n").filter(Boolean).pop() || "";
-function stat(id, text, cls) { const e = $("#"+id); e.className = "stat " + cls; e.querySelector("b").textContent = text; }
-function row(html) { const d = document.createElement("div"); d.className = "row"; d.innerHTML = html; tl.appendChild(d); tl.scrollTop = tl.scrollHeight; }
+const num = n => (+n || 0);
+const fmt = n => num(n).toLocaleString();
+const modelName = m => /super/i.test(m) ? "Nemotron 3 Super" : /lightning/i.test(m) ? "Nemotron 3.5 Lightning" : String(m || "").replace("nvidia/", "");
+const modelShort = m => /super/i.test(m) ? "Nemotron Super" : /lightning/i.test(m) ? "Nemotron Lightning" : String(m || "").replace("nvidia/", "");
+const modelTag = m => m ? `<span class="tag m">${esc(modelName(m))}</span>` : "";
+const TAVILY = '<span class="tag t">Tavily</span>';
+const hostPath = u => String(u).replace(/^https?:\/\//, "");
+const reduceMotion = () => matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+function toolTarget(a) {
+  if (typeof a === "string") { const m = a.match(/'path':\s*'([^']+)'/) || a.match(/"path":\s*"([^"]+)"/); return m ? m[1] : ""; }
+  a = a || {};
+  return a.path || a.query || (a.code ? "python snippet" : "");
+}
+
+function setNow(msg, running) {
+  $("#nowMsg").textContent = msg;
+  $("#now").classList.toggle("running", !!running);
+}
+function setSteps(active, upto) {
+  // upto: index of the last "done" step; active: index or -1; fail: stepState entry
+  document.querySelectorAll("#steps li").forEach((li, i) => {
+    const s = stepState[i];
+    li.className = s;
+    if (s === "active") li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current");
+    li.querySelector(".sr")?.remove();
+    if (s === "done" || s === "fail") li.insertAdjacentHTML("beforeend", `<span class="sr"> (${s === "done" ? "done" : "failed"})</span>`);
+  });
+}
+function stepTo(name) {
+  const i = STEPS.indexOf(name); if (i < 0) return;
+  for (let k = 0; k < STEPS.length; k++) stepState[k] = k < i ? "done" : k === i ? "active" : "pending";
+  setSteps();
+}
+function finishSteps(ok) {
+  if (ok) stepState = stepState.map(() => "done");
+  else { const a = stepState.indexOf("active"); stepState = stepState.map((s, k) => k === (a < 0 ? STEPS.length - 1 : a) ? "fail" : s); }
+  setSteps();
+}
+
+function updateCounter() {
+  const tok = ledger.pt + ledger.ct;
+  $("#counter").innerHTML = ledger.calls ? `<b>${fmt(ledger.calls)}</b> model calls · <b>${fmt(tok)}</b> tokens · est. <b>$${ledger.cost.toFixed(4)}</b>` : "";
+}
+
+function stat(id, text, cls, cap) {
+  const e = $("#" + id);
+  e.className = "stat " + cls; e.querySelector("b").textContent = text;
+  if (cap) e.querySelector(".cap").textContent = cap;
+  void e.offsetWidth; e.classList.add("pop");
+  setTimeout(() => e.classList.remove("pop"), 700);
+}
+
+function row(icon, html, cls) {
+  const d = document.createElement("div"); d.className = "row" + (cls ? " " + cls : "");
+  d.innerHTML = `<span class="ic">${icon}</span><span class="bd">${html}</span>`;
+  tl.appendChild(d);
+  if (tl.scrollHeight > tl.clientHeight && getComputedStyle(tl).overflowY !== "visible") tl.scrollTop = tl.scrollHeight;
+}
+
+function notice(msg, action) {
+  const n = $("#notice");
+  n.innerHTML = `<span>${esc(msg)}</span>`;
+  if (action) { const b = document.createElement("button"); b.textContent = action.label; b.onclick = () => { clearNotice(); action.fn(); }; n.appendChild(b); }
+  const x = document.createElement("button"); x.className = "x"; x.setAttribute("aria-label", "Dismiss"); x.textContent = "×"; x.onclick = clearNotice; n.appendChild(x);
+  n.hidden = false;
+}
+function clearNotice() { const n = $("#notice"); n.hidden = true; n.innerHTML = ""; }
+function codeNote(msg) { const n = $("#codeNote"); n.textContent = msg || ""; n.hidden = !msg; }
+
+function setBusy(b) {
+  busy = b;
+  $("#play").disabled = b || !hasRec;
+  $("#live").disabled = b;
+  $("#now").setAttribute("aria-busy", b ? "true" : "false");
+}
+
+function mode(kind, text) { const m = $("#mode"); m.hidden = false; const [a, ...b] = text.split(" · "); m.innerHTML = esc(a) + (b.length ? `<span class="more"> · ${esc(b.join(" · "))}</span>` : ""); m.className = "chip " + kind; mode_ = kind; }
+
+/* ---------- state ---------- */
+function reset() {
+  tl.innerHTML = "";
+  ledger = {calls: 0, pt: 0, ct: 0, cost: 0, sec: 0, models: {}};
+  repairRuns = 0; lastModel = ""; lastFinal = null; verifyChecks = null; srcMap = new Map(); lastDiff = ""; userTab = false;
+  stepState = STEPS.map(() => "pending"); setSteps();
+  for (const id of Object.keys(CAPS)) { const e = $("#" + id); e.className = "stat"; e.querySelector("b").textContent = "–"; e.querySelector(".cap").textContent = CAPS[id]; }
+  research = {}; fseq = []; $("#spark").hidden = true; $("#spark").innerHTML = "";
+  $("#p-research").innerHTML = EMPTY_RESEARCH;
+  $("#p-diff").innerHTML = EMPTY_DIFF;
+  $("#p-sources").innerHTML = '<div class="empty">Sources appear when the agent researches the migration guide.</div>';
+  $("#p-verify").innerHTML = '<div class="empty">Integrity checks appear at the end of the run.</div>';
+  $("#p-ledger").innerHTML = '<div class="empty">Model calls are tallied here as they happen.</div>';
+  $("#summary").hidden = true; $("#summary").innerHTML = "";
+  $("#srcCount").hidden = true;
+  setNow("Idle", false); updateCounter();
+  selectTab("research");
+}
+function showPlaceholder() {
+  tl.innerHTML = '<div class="idle"><div class="ic" aria-hidden="true">▶</div><b>Ready when you are</b><p>Press <em>Play recorded run</em> to watch the agent upgrade a real project from pydantic v1 to v2, step by step, and prove it with the unchanged tests.</p></div>';
+}
+
+/* ---------- renderers ---------- */
+function testCounts(sum, status) {
+  // -> {n, kind, total} or null. n = failing count; kind "err" for collection errors with no tests run.
+  const g = re => { const m = String(sum || "").match(re); return m ? +m[1] : null; };
+  const f = g(/(\d+) failed/), e = g(/(\d+) errors?\b/), p = g(/(\d+) passed/);
+  if (f == null && e == null) return p != null || status === "passed" ? {n: 0, kind: "ok", total: p || 0} : null;
+  if (f == null) return {n: e, kind: "err", total: p || 0};
+  return {n: f + (e || 0), kind: "fail", total: f + (e || 0) + (p || 0)};
+}
+function pushFail(label, sum, status) {
+  const c = testCounts(sum, status); if (!c) return;
+  fseq.push({...c, label});
+  renderSpark();
+}
+function renderSpark() {
+  const box = $("#spark"); if (!fseq.length) { box.hidden = true; return; }
+  const top = Math.max(1, ...fseq.map(x => x.total || x.n)), H = 34;
+  const lbl = x => x.kind === "err" ? `${x.n} collection error${x.n === 1 ? "" : "s"}` : x.n === 0 ? "none failing" : `${x.n} failing`;
+  box.hidden = false;
+  box.setAttribute("role", "img");
+  box.setAttribute("aria-label", "Failing tests, after the bump and after each repair test run: " + fseq.map((x, i) => `${i ? "run " + i : "after bump"} ${lbl(x)}`).join(", "));
+  box.innerHTML = `<span class="sp-t">Failing tests per run (0 = after bump)</span><div class="cols" aria-hidden="true">` +
+    fseq.map((x, i) => { const h = x.kind === "ok" || x.n === 0 ? 3 : x.kind === "err" ? H : Math.max(4, Math.round(H * x.n / top));
+      return `<div class="sp ${x.kind === "err" ? "err" : x.n === 0 ? "ok" : ""}" title="${esc(lbl(x))}"><i>${x.n}</i><s style="height:${h}px"></s><i class="x">${i}</i></div>`; }).join("") + `</div>` +
+    (fseq.some(x => x.kind === "err") ? `<span class="sp-k">Hatched bar: tests could not be collected (import errors)</span>` : "");
+}
+
+function renderResearch() {
+  const r = research, parts = [];
+  const link = u => `<a href="${esc(safeUrl(u))}" target="_blank" rel="noopener noreferrer">${esc(u)}</a>`;
+  if (r.query != null) {
+    parts.push(`<h3>${TAVILY} Search</h3><div><code>${esc(r.query)}</code>${(r.urls || []).length ? ` <span class="meta">· ${r.urls.length} candidate section${r.urls.length === 1 ? "" : "s"}</span>` : ""}</div>`);
+    if ((r.urls || []).length) parts.push(`<h3>Candidate hits</h3><ul class="hits">${r.urls.map(u => `<li>${link(u)}</li>`).join("")}</ul>`);
+  }
+  if (r.extracted) parts.push(`<h3>${TAVILY} Page read in full</h3><div>${link(r.extracted)}<br><span class="meta">${r.chars != null ? fmt(r.chars) + " characters extracted" : "extracted"}</span></div>`);
+  if (r.notes != null) parts.push(`<h3>${modelTag("Lightning")} Migration checklist</h3><p class="meta" style="margin:0 0 4px">Condensed by Nemotron Lightning from the retrieved page</p><pre class="lightning" tabindex="0">${esc(r.notes)}</pre>`);
+  else if (r.extracted) parts.push(`<h3>${modelTag("Lightning")} Migration checklist</h3><p class="meta">Nemotron Lightning is condensing the page&hellip;</p>`);
+  $("#p-research").innerHTML = parts.join("") || EMPTY_RESEARCH;
+}
 
 function renderLedger() {
-  const m = Object.entries(ledger.models).map(([k, v]) => `<tr><td>${esc(k.replace("nvidia/",""))}</td><td>${v.calls}</td><td>${v.pt.toLocaleString()}</td><td>${v.ct.toLocaleString()}</td><td>$${v.cost.toFixed(4)}</td></tr>`).join("");
-  $("#p-ledger").innerHTML = `<table><tr><th>Model</th><th>Calls</th><th>Prompt tok</th><th>Completion tok</th><th>Est. cost</th></tr>${m}
-    <tr><th>Total</th><th>${ledger.calls}</th><th>${ledger.pt.toLocaleString()}</th><th>${ledger.ct.toLocaleString()}</th><th>$${ledger.cost.toFixed(4)}</th></tr></table>
+  const m = Object.entries(ledger.models).map(([k, v]) => `<tr><td>${esc(modelName(k))}</td><td>${v.calls}</td><td>${fmt(v.pt)}</td><td>${fmt(v.ct)}</td><td>$${v.cost.toFixed(4)}</td></tr>`).join("");
+  $("#p-ledger").innerHTML = `<div class="tscroll"><table><tr><th>Model</th><th>Calls</th><th>Prompt tok</th><th>Completion tok</th><th>Est. cost</th></tr>${m}
+    <tr><th>Total</th><th>${ledger.calls}</th><th>${fmt(ledger.pt)}</th><th>${fmt(ledger.ct)}</th><th>$${ledger.cost.toFixed(4)}</th></tr></table></div>
     <p class="note">Model time ${ledger.sec.toFixed(0)}s. Tokens are measured; cost is estimated from catalog prices.</p>`;
 }
 
+function parseDiff(diff) {
+  const lines = diff.replace(/\n$/, "").split("\n"), files = []; let cur = null;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (l.startsWith("--- ") && (lines[i + 1] || "").startsWith("+++ ")) {
+      let name = lines[i + 1].slice(4).replace(/^b\//, ""); if (name === "/dev/null") name = l.slice(4).replace(/^a\//, "");
+      cur = {name, add: 0, del: 0, lines: []}; files.push(cur); i++; continue;
+    }
+    if (!cur) { cur = {name: "changes", add: 0, del: 0, lines: []}; files.push(cur); }
+    if (l.startsWith("+")) cur.add++; else if (l.startsWith("-")) cur.del++;
+    cur.lines.push(l);
+  }
+  return files;
+}
 function renderDiff(diff) {
+  lastDiff = diff || "";
   if (!diff) { $("#p-diff").innerHTML = '<div class="empty">No changes were made.</div>'; return; }
-  $("#p-diff").innerHTML = '<pre class="diff">' + diff.split("\n").map(l =>
-    l.startsWith("+++")||l.startsWith("---") ? "" : l.startsWith("@@") ? `<span class="h">${esc(l)}</span>` :
-    l.startsWith("+") ? `<span class="a">${esc(l)}</span>` : l.startsWith("-") ? `<span class="d">${esc(l)}</span>` : esc(l) + "\n").join("") + "</pre>";
+  const files = parseDiff(diff);
+  $("#p-diff").innerHTML = `<div class="toolbar"><button type="button" id="copyDiff">Copy diff</button></div>` + files.map(f =>
+    `<section class="dfile"><div class="fbar"><span>${esc(f.name)}</span><span class="cnt"><i class="p">+${f.add}</i> <i class="m">−${f.del}</i></span></div><div class="dscroll"><div class="dlines">` +
+    f.lines.map(l => { const c = l.startsWith("@@") ? "h" : l.startsWith("+") ? "a" : l.startsWith("-") ? "d" : ""; return `<span class="ln ${c}">${esc(l) || "&nbsp;"}</span>`; }).join("") +
+    `</div></div></section>`).join("");
+}
+$("#p-diff").addEventListener("click", async e => {
+  const b = e.target.closest("#copyDiff"); if (!b) return;
+  let ok = false;
+  try { await navigator.clipboard.writeText(lastDiff); ok = true; }
+  catch (_) {
+    try { const t = document.createElement("textarea"); t.value = lastDiff; t.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(t); t.select(); ok = document.execCommand("copy"); t.remove(); } catch (_) {}
+  }
+  b.textContent = ok ? "Copied" : "Copy failed"; setTimeout(() => { b.textContent = "Copy diff"; }, 1800);
+});
+
+function addSources(urls, extracted, used) {
+  const base = u => String(u).split("#")[0];
+  for (const u of [].concat(urls || [], extracted ? [extracted] : [])) {
+    if (!/^https?:\/\//i.test(u)) continue;
+    const b = base(u), e = srcMap.get(b) || {url: b, extracted: false, used: false, sections: new Set()};
+    if (u.includes("#")) e.sections.add(u);
+    srcMap.set(b, e);
+  }
+  if (extracted && srcMap.has(base(extracted))) srcMap.get(base(extracted)).extracted = true;
+  for (const u of used || []) { if (srcMap.has(base(u))) srcMap.get(base(u)).used = true; }
+  renderSources();
+}
+function renderSources() {
+  const all = [...srcMap.values()], cited = all.filter(e => e.extracted || e.used), list = cited.length ? cited : all;
+  const n = list.length, c = $("#srcCount"); c.hidden = !n; c.textContent = n;
+  if (!n) return;
+  $("#p-sources").innerHTML = `<p style="margin-top:0">${cited.length ? "Pages the agent read and cited" : "Pages Tavily returned"}. <span class="meta">Search hits and the condensed checklist are in the Research tab.</span></p>` + list.map(e =>
+    `<div class="src"><a href="${esc(safeUrl(e.url))}" target="_blank" rel="noopener noreferrer">${esc(e.url)}</a> ` +
+    (e.extracted ? `<span class="tag t">extracted</span>` : "") + (e.used ? `<span class="tag m">used by agent</span>` : "") +
+    `</div>`).join("");
 }
 
+function renderVerify(d) {
+  $("#p-verify").innerHTML = (d.checks || []).map(c => `<div class="check"><span class="tick ${c.ok ? "y" : "n"}">${c.ok ? "✓" : "✗"}</span><span><b>${esc(c.check)}</b>${c.detail ? `<br><span class="sub">${esc(c.detail)}</span>` : ""}</span></div>`).join("") || '<div class="empty">No checks reported.</div>';
+}
+
+function showSummary(d) {
+  const L = d.ledger || {calls: ledger.calls, prompt_tokens: ledger.pt, completion_tokens: ledger.ct, est_cost_usd: ledger.cost, seconds: ledger.sec};
+  const ok = d.outcome === "success";
+  const pass = lastFinal ? num((lastFinal.match(/(\d+) passed/) || [])[1]) : 0, fail = lastFinal ? num((lastFinal.match(/(\d+) failed/) || [])[1]) : 0;
+  const unchanged = (verifyChecks || []).find(c => /tests unchanged/i.test(c.check));
+  const testsTxt = lastFinal && pass + fail > 0 ? `${pass}/${pass + fail} tests` : "";
+  const testsSub = unchanged ? (unchanged.ok ? "tests unmodified" : "tests were modified") : "";
+  const tot = num(L.prompt_tokens) + num(L.completion_tokens);
+  const metrics = [
+    ["Model calls", fmt(L.calls), ""],
+    ["Total tokens", fmt(tot), `<small>${fmt(L.prompt_tokens)} in / ${fmt(L.completion_tokens)} out</small>`],
+    ["Cost", "$" + num(L.est_cost_usd).toFixed(4), "<small>est.</small>"],
+    ["Model time", num(L.seconds).toFixed(0) + "s", ""]
+  ];
+  if (testsTxt) metrics.push(["Result", testsTxt, testsSub ? `<small>· ${esc(testsSub)}</small>` : ""]);
+  const s = $("#summary"); s.className = "summary" + (ok ? "" : " bad");
+  s.innerHTML = `<div class="sum-head"><span class="pill ${ok ? "passed" : "failed"}">${esc(d.outcome)}</span><b>${ok ? "Migration verified" : "Migration not verified"}${d.reason ? ": " + esc(d.reason) : ""}</b>` +
+    `<span class="sum-src">${mode_ === "live" ? "Live run" : mode_ === "rec" ? "Recorded run · replayed" : ""}</span></div>` +
+    `<div class="sum-grid">${metrics.map(m => `<div><span>${m[0]}</span><b>${esc(m[1])}</b>${m[2]}</div>`).join("")}</div>`;
+  s.hidden = false;
+}
+
+function selectTab(name, byUser) {
+  if (byUser) userTab = true;
+  document.querySelectorAll(".tab").forEach(t => { const on = t.dataset.t === name; t.classList.toggle("on", on); t.setAttribute("aria-selected", on); t.tabIndex = on ? 0 : -1; });
+  for (const k of ["research", "diff", "sources", "verify", "ledger"]) $("#p-" + k).hidden = k !== name;
+}
+function autoTab(name) { if (!userTab) selectTab(name); }
+
+/* ---------- event handling ---------- */
 function handle(ev) {
-  const d = ev.data;
+  const d = ev.data || {};
   switch (ev.kind) {
-    case "stage": tl.insertAdjacentHTML("beforeend", `<div class="stage">${esc(d.name)}<small>${esc(d.detail)}</small></div>`); break;
+    case "stage":
+      tl.insertAdjacentHTML("beforeend", `<div class="stage">${esc(d.name)}<small>${esc(d.detail)}</small></div>`);
+      stepTo(d.name);
+      setNow({baseline: "Running the project's tests on the old version", bump: "Bumping the dependency and re-running the same tests", research: "Tavily → searching the migration guide", repair: `${modelShort(d.detail)} → starting the repair loop`}[d.name] || d.name, true);
+      break;
     case "tests": {
       const sum = lastLine(d.output), failed = d.status !== "passed";
       if (d.phase === "baseline") stat("sBase", failed ? "not green" : sum.match(/\d+ passed/)?.[0] || "passed", failed ? "bad" : "ok");
-      if (d.phase === "bump") stat("sBump", sum.match(/\d+ (failed|errors?)/)?.[0] || "failing", "bad");
-      if (d.phase === "repair") stat("sFinal", failed ? (sum.match(/\d+ failed/)?.[0] || "still failing") : sum.match(/\d+ passed/)?.[0] || "passed", failed ? "bad" : "ok");
-      row(`<span class="pill ${d.status}">${esc(d.status)}</span><span>${esc(d.phase)} tests · ${esc(sum)}<details><summary>output</summary><pre>${esc(d.output)}</pre></details></span>`); break; }
-    case "search": row(`<span>🔎</span><span>Tavily: <code>${esc(d.query)}</code>${d.extracted ? `<br>extracted <a href="${esc(d.extracted)}" target="_blank" rel="noopener">${esc(d.extracted)}</a> (${(d.chars||0).toLocaleString()} chars)` : ""}</span>`); break;
-    case "notes": row(`<span>📋</span><span>Migration checklist, condensed by Lightning from the retrieved page<details><summary>show</summary><pre>${esc(d.text)}</pre></details></span>`); break;
-    case "tool": { const a = d.args || {}; row(`<span>→</span><span><code>${esc(d.name)}</code> ${esc(a.path || a.query || (a.code ? "snippet" : ""))}</span>`); break; }
-    case "model_call": ledger.calls++; ledger.pt += d.prompt_tokens; ledger.ct += d.completion_tokens; ledger.cost += d.cost_usd; ledger.sec += d.seconds;
-      const m = ledger.models[d.model] ||= {calls: 0, pt: 0, ct: 0, cost: 0}; m.calls++; m.pt += d.prompt_tokens; m.ct += d.completion_tokens; m.cost += d.cost_usd; renderLedger(); break;
-    case "escalate": row(`<span>⬆</span><span>Escalated to <code>${esc(d.to_model)}</code>: ${esc(d.reason)}</span>`); break;
-    case "model_says": row(`<span>💬</span><span>${esc(d.text)}</span>`); break;
-    case "verify": { stat("sVerify", d.ok ? "all passed" : "failed", d.ok ? "ok" : "bad");
-      $("#p-verify").innerHTML = d.checks.map(c => `<div class="check"><span class="tick ${c.ok?"y":"n"}">${c.ok?"✓":"✗"}</span><span><b>${esc(c.check)}</b>${c.detail ? `<br><span class="sub">${esc(c.detail)}</span>` : ""}</span></div>`).join(""); break; }
-    case "report": renderDiff(d.diff);
-      $("#p-sources").innerHTML = (d.sources.length ? "<p>Pages Tavily returned and the agent used:</p>" : "<div class='empty'>No sources.</div>") + d.sources.map(u => `<div class="check"><a href="${esc(u)}" target="_blank" rel="noopener">${esc(u)}</a></div>`).join("");
-      row(`<span class="pill ${d.outcome === "success" ? "passed" : "failed"}">${esc(d.outcome)}</span><span>${esc(d.reason)}</span>`); break;
-    case "error": row(`<span class="pill failed">error</span><span>${esc(d.message)}</span>`); break;
+      if (d.phase === "bump") { stat("sBump", sum.match(/\d+ (failed|errors?)/)?.[0] || "failing", "bad"); fseq = []; $("#spark").hidden = true; fseq.push(...[testCounts(sum, d.status)].filter(Boolean)); }
+      if (d.phase === "repair") {
+        repairRuns++; lastFinal = sum;
+        stat("sFinal", failed ? (sum.match(/\d+ failed/)?.[0] || "still failing") : sum.match(/\d+ passed/)?.[0] || "passed", failed ? "bad" : "ok",
+          failed ? `repair test run ${repairRuns} · still fixing` : `green after ${repairRuns} repair test run${repairRuns === 1 ? "" : "s"}`);
+        pushFail(repairRuns, sum, d.status);
+      }
+      setNow(`Tests (${d.phase}) → ${sum || d.status}`, true);
+      row(`<span class="pill ${esc(d.status)}">${esc(d.status)}</span>`, `${esc(d.phase)} tests${d.phase === "repair" ? ` · run ${repairRuns}` : ""} · ${esc(sum)}<details><summary>output</summary><pre>${esc(d.output)}</pre></details>`); break; }
+    case "search": {
+      const n = (d.urls || []).length;
+      addSources(d.urls, d.extracted, []);
+      setNow(d.extracted ? `Tavily → extracting ${hostPath(d.extracted)}` : `Tavily → searching "${d.query}"`, true);
+      row("🔎", `${TAVILY}<code>${esc(d.query)}</code>${d.extracted ? `<br>extracted <a href="${esc(safeUrl(d.extracted))}" target="_blank" rel="noopener noreferrer">${esc(d.extracted)}</a> (${fmt(d.chars)} chars)` : n ? ` · ${n} results` : ""}`);
+      Object.assign(research, {query: d.query ?? research.query, urls: d.urls || research.urls, extracted: d.extracted || research.extracted, chars: d.chars ?? research.chars});
+      renderResearch(); autoTab("research");
+      break; }
+    case "notes":
+      research.notes = d.text || ""; renderResearch(); autoTab("research");
+      setNow("Nemotron Lightning → condensing the docs into a migration checklist", true);
+      row("📋", `${modelTag("Lightning")}Migration checklist, condensed from the retrieved page<details><summary>show</summary><pre>${esc(d.text)}</pre></details>`); break;
+    case "tool": {
+      const t = toolTarget(d.args), who = modelShort(lastModel) || "Agent";
+      setNow(`${who} → ${d.name}${t ? " " + t : ""}`, true);
+      row("→", `${modelTag(lastModel)}<code>${esc(d.name)}</code> ${esc(t)}`); break; }
+    case "model_call": {
+      const pt = num(d.prompt_tokens), ct = num(d.completion_tokens), c = num(d.cost_usd), s = num(d.seconds);
+      ledger.calls++; ledger.pt += pt; ledger.ct += ct; ledger.cost += c; ledger.sec += s; lastModel = d.model;
+      const m = ledger.models[d.model] ||= {calls: 0, pt: 0, ct: 0, cost: 0}; m.calls++; m.pt += pt; m.ct += ct; m.cost += c;
+      renderLedger(); updateCounter();
+      setNow(`${modelShort(d.model)} → ${d.step || "model call"}`, true);
+      row("·", `${modelTag(d.model)}${esc(d.step)} · ${fmt(pt)}→${fmt(ct)} tok · ${s.toFixed(1)}s`, "faint"); break; }
+    case "escalate":
+      row("⬆", `Escalated to ${modelTag(d.to_model)}${esc(d.reason)}`); break;
+    case "model_says":
+      row("💬", `${modelTag(lastModel)}${esc(d.text)}`); break;
+    case "verify":
+      verifyChecks = d.checks || [];
+      stat("sVerify", d.ok ? "all passed" : "failed", d.ok ? "ok" : "bad", `${verifyChecks.filter(c => c.ok).length} of ${verifyChecks.length} checks ok`);
+      renderVerify(d);
+      stepState = stepState.map((s, k) => k < 4 ? "done" : d.ok ? "done" : "fail"); setSteps();
+      setNow(d.ok ? "Verified: tests unmodified, version pinned, no v1 APIs" : "Verification failed", false);
+      row(`<span class="pill ${d.ok ? "passed" : "failed"}">${d.ok ? "passed" : "failed"}</span>`, `integrity checks · ${verifyChecks.filter(c => c.ok).length}/${verifyChecks.length} ok`); break;
+    case "done":
+      finishSteps(d.outcome === "success");
+      setNow(d.outcome === "success" ? "Done: migration verified" : `Finished: ${d.outcome}`, false);
+      showSummary(d); break;
+    case "report":
+      renderDiff(d.diff);
+      if (d.sources) addSources([], null, d.sources);
+      if (d.sources?.length && !srcMap.size) { addSources(d.sources, d.sources[0], d.sources); }
+      if (!verifyChecks && d.verification) { verifyChecks = d.verification.checks || []; renderVerify(d.verification); }
+      if ($("#summary").hidden) { finishSteps(d.outcome === "success"); setNow(d.outcome === "success" ? "Done: migration verified" : `Finished: ${d.outcome}`, false); showSummary(d); }
+      autoTab("diff");
+      row(`<span class="pill ${d.outcome === "success" ? "passed" : "failed"}">${esc(d.outcome)}</span>`, esc(d.reason)); break;
+    case "error":
+      finishSteps(false); setNow("Error: " + (d.message || "unknown"), false);
+      row(`<span class="pill failed">error</span>`, esc(d.message)); break;
   }
 }
 
-function mode(kind, text) { const m = $("#mode"); m.hidden = false; m.textContent = text; m.className = "chip " + kind; }
+/* ---------- runs ---------- */
+function showNow() {
+  const n = $("#now"), r = n.getBoundingClientRect();
+  if (innerWidth < 900 || r.top < 0 || r.bottom > innerHeight) n.scrollIntoView({behavior: reduceMotion() ? "auto" : "smooth", block: "start"});
+}
+async function detailOf(res) { try { const j = await res.json(); return j.detail ? String(j.detail) : ""; } catch (_) { return ""; } }
 
 async function playRecorded() {
-  stopAll(); reset(); const my = ++playing;
-  const res = await fetch("/api/recording");
-  if (!res.ok) { row("No recording is bundled."); return; }
-  const rec = await res.json(); mode("rec", "RECORDED RUN · a real run captured earlier, replayed");
+  if (busy) return;
+  clearNotice(); codeNote("");
+  let rec;
+  try {
+    const res = await fetch("/api/recording");
+    if (!res.ok) { notice((await detailOf(res)) || "No recording is bundled."); return; }
+    rec = await res.json();
+  } catch (_) { notice(WAKE); return; }
+  stopAll(); reset(); const my = ++playing; setBusy(true);
+  mode("rec", "RECORDED RUN · a real run captured earlier, replayed");
+  setNow("Starting the recorded run", true); showNow();
   let prev = 0;
-  for (const ev of rec.events) {
-    if (my !== playing) return;
-    const gap = Math.min((ev.t - prev) * 1000 / +$("#speed").value, 1200); prev = ev.t;
-    await new Promise(r => setTimeout(r, gap)); handle(ev);
-  }
+  try {
+    for (const ev of rec.events) {
+      if (my !== playing) return;
+      const gap = Math.min(Math.max(ev.t - prev, 0), 3) * 1000 / (+$("#speed").value || 2); prev = ev.t;   // real-time gaps capped at 3 s, then scaled
+      await new Promise(r => setTimeout(r, gap));
+      if (my !== playing) return;
+      handle(ev);
+    }
+  } catch (err) { console.error(err); notice("The replay hit a problem. Try Play again."); }
+  finally { if (my === playing) { setBusy(false); if ($("#now").classList.contains("running")) setNow("Replay finished", false); } }
 }
 
 async function runLive() {
-  stopAll(); reset(); playing++;
-  const res = await fetch("/api/run", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({access_code: $("#code").value})});
-  if (!res.ok) { const e = await res.json().catch(() => ({})); row(`<span class="pill failed">refused</span><span>${esc(e.detail || res.status)}</span>`); return; }
-  const {run_id} = await res.json(); mode("live", "LIVE RUN · calling Token Factory now");
-  es = new EventSource(`/api/run/${run_id}/events`);
-  es.onmessage = m => handle(JSON.parse(m.data));
-  es.addEventListener("end", () => es.close());
+  if (busy) return;
+  clearNotice(); codeNote("");
+  const code = $("#code").value;
+  if (!code.trim()) { codeNote("Enter the access code to run live. The recorded run needs none."); $("#code").focus(); return; }
+  setBusy(true);
+  let run_id;
+  try {
+    const res = await fetch("/api/run", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({access_code: code})});
+    if (!res.ok) {
+      const det = await detailOf(res);
+      codeNote(res.status === 403 ? "That access code was not accepted." + (det ? " " + det : "") : (det || `The server said no (HTTP ${res.status}). Try again, or play the recorded run.`));
+      setBusy(false); return;
+    }
+    ({run_id} = await res.json());
+  } catch (_) { codeNote(WAKE); setBusy(false); return; }
+  stopAll(); reset(); playing++; mode("live", "LIVE RUN · calling Token Factory now");
+  setNow("Run accepted, waiting for the first event", true); showNow();
+  let handled = 0, msgIdx = 0, closed = false;
+  const src = es = new EventSource(`/api/run/${encodeURIComponent(run_id)}/events`);
+  const finish = () => { closed = true; src.close(); if (es === src) es = null; setBusy(false); };
+  src.onopen = () => { msgIdx = 0; };                       // a reconnect replays from event 0
+  src.onmessage = m => {
+    const i = msgIdx++; if (i < handled || closed) return;  // dedupe by index
+    handled = i + 1;
+    let ev; try { ev = JSON.parse(m.data); } catch (_) { return; }
+    try { handle(ev); } catch (err) { console.error(err); }
+    if (ev.kind === "report" || ev.kind === "error") finish();
+  };
+  src.addEventListener("end", finish);
+  src.onerror = () => {
+    if (closed) return;
+    finish(); setNow("Disconnected from the live run", false);
+    notice("Disconnected from the live run. The server may be restarting.", {label: "Replay the recorded run", fn: playRecorded});
+  };
 }
 function stopAll() { playing++; if (es) { es.close(); es = null; } }
 
-$("#play").onclick = playRecorded; $("#live").onclick = runLive;
-document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
-  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));
-  for (const k of ["diff","sources","verify","ledger"]) $("#p-"+k).hidden = k !== t.dataset.t;
+/* ---------- wiring ---------- */
+$("#play").onclick = playRecorded;
+$("#live").onclick = runLive;
+$("#code").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); runLive(); } });
+$("#code").addEventListener("input", () => codeNote(""));
+document.querySelectorAll(".tab").forEach(t => {
+  t.onclick = () => selectTab(t.dataset.t, true);
+  t.addEventListener("keydown", e => {
+    const tabs = [...document.querySelectorAll(".tab")], i = tabs.indexOf(t);
+    const j = e.key === "ArrowRight" ? (i + 1) % tabs.length : e.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : -1;
+    if (j >= 0) { e.preventDefault(); tabs[j].focus(); selectTab(tabs[j].dataset.t, true); }
+  });
 });
-fetch("/api/config").then(r => r.json()).then(c => { $("#liveBox").hidden = !c.live_enabled; $("#play").disabled = !c.has_recording; reset(); });
+
+const howBtn = $("#howBtn");
+function setHow(open) { howBtn.setAttribute("aria-expanded", open); $("#howList").hidden = !open; }
+howBtn.onclick = () => setHow(howBtn.getAttribute("aria-expanded") !== "true");
+setHow(innerWidth > 600);
+
+reset(); showPlaceholder(); setBusy(false);
+fetch("/api/config").then(r => r.json()).then(c => {
+  $("#liveBox").hidden = !c.live_enabled; hasRec = !!c.has_recording; setBusy(busy);
+  if (c.fixture) $("#fixture").textContent = `${c.fixture.package || "pydantic"} ${c.fixture.from} → ${c.fixture.to}`;
+}).catch(() => notice(WAKE));
 </script>
 </body>
 </html>
