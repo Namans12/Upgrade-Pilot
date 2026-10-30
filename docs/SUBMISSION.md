@@ -35,4 +35,4 @@ Arbitrary repositories in a real container sandbox, more migrations, opening pul
 Nebius Token Factory, NVIDIA Nemotron (Lightning, Super), Tavily, FastAPI, Python, uv, Docker, Render.
 
 ## Testing instructions for judges
-Open the demo URL and press **Play recorded run** (a real run captured earlier, labelled *Recorded*). For a live run, enter the access code `<ADD CODE HERE>` and press **Run live** (one at a time, daily cap, spend cap per run). The first load may take up to a minute if the free instance is asleep.
+Open https://upgradepilot.onrender.com and press **Play recorded run** (a real run captured earlier, labelled *Recorded*). For a live run, enter the access code `<ADD CODE HERE>` and press **Run live** (one at a time, daily cap, spend cap per run). The first load may take up to a minute if the free instance is asleep.
