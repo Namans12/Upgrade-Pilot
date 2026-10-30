@@ -5,12 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>UpgradePilot</title>
+<meta name="description" content="An agent that migrates a breaking dependency upgrade and proves it with the project's own unchanged tests. Nemotron on Nebius Token Factory, Tavily for docs.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--ink:#14181f;--mute:#5b6572;--line:#e3e7ec;--accent:#4f46e5;--accentbg:#eceafd;--glow:rgba(79,70,229,.25);--ok:#13795b;--okbg:#e3f6ee;--bad:#b42318;--badbg:#fdeceb;--warn:#8a5a00;--warnbg:#fff3d6;--code:#f1f3f6;--add:#e6f6ec;--del:#fdecec;--addbd:#2da66f;--delbd:#d6453d;--shadow:0 6px 18px rgba(20,24,31,.10)}
 @media (prefers-color-scheme:dark){:root{--bg:#0e1116;--card:#161b22;--ink:#e8ecf2;--mute:#97a1af;--line:#262d38;--accent:#8b86ff;--accentbg:#1f1e3d;--glow:rgba(139,134,255,.3);--ok:#4cc79a;--okbg:#10291f;--bad:#ff8a80;--badbg:#32171a;--warn:#f0b955;--warnbg:#33290f;--code:#10151c;--add:#102a1b;--del:#341619;--addbd:#3fbf86;--delbd:#ff6b61;--shadow:0 6px 18px rgba(0,0,0,.45)}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
 .sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 header{max-width:1200px;margin:0 auto;padding:26px 16px 4px}
@@ -127,7 +131,7 @@ input,select{border:1px solid var(--line);background:var(--card);color:var(--ink
 .tag.m{color:var(--accent);background:var(--accentbg);border-color:transparent}
 .tag.t{color:var(--ok);background:var(--okbg);border-color:transparent}
 details{margin:2px 0 6px}summary{cursor:pointer;color:var(--accent);font-size:13.5px}
-pre{margin:6px 0;padding:10px 12px;background:var(--code);border-radius:8px;overflow:auto;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+pre{margin:6px 0;padding:10px 12px;background:var(--code);border-radius:8px;overflow:auto;font:12.5px/1.5 "JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
 .tab{flex:0 0 auto;padding:11px 12px;border:0;border-bottom:2px solid transparent;background:none;border-radius:0;color:var(--mute);font-weight:600;white-space:nowrap}
 .tab.on{color:var(--ink);border-color:var(--accent)}
@@ -140,7 +144,7 @@ pre{margin:6px 0;padding:10px 12px;background:var(--code);border-radius:8px;over
 .fbar{position:sticky;top:-14px;z-index:2;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--accentbg);color:var(--ink);font:600 13px/1.3 ui-monospace,Menlo,monospace;border-bottom:1px solid var(--line)}
 .fbar .cnt{font-weight:700;white-space:nowrap}.cnt i{font-style:normal}.cnt .p{color:var(--ok)}.cnt .m{color:var(--bad)}
 .dscroll{overflow-x:auto}
-.dlines{font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word}
+.dlines{font:13px/1.55 "JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word}
 .ln{display:block;padding:0 12px;border-left:3px solid transparent}
 .ln.a{background:var(--add);border-left-color:var(--addbd)}
 .ln.d{background:var(--del);border-left-color:var(--delbd)}
@@ -162,11 +166,39 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;p
 .note{color:var(--mute);font-size:13px;margin-top:14px}
 a{color:var(--accent)}
 @media(max-width:600px){#sFinal{grid-column:1/-1}.sum-grid{grid-template-columns:1fr 1fr}.sum-grid b{font-size:18px}.chip .more{display:none}.now{padding:8px 12px;top:6px}.counter{font-size:12.5px;margin-left:0}.steps{margin:6px 0}.now-head{gap:2px 10px}.stat .lbl{font-size:12px}header{padding-top:18px}h1{font-size:24px}.steps li{font-size:12px}.nowtext{font-size:15px}.stat b{font-size:28px}.livebox{flex-basis:100%}.livebox .codewrap{flex:1 1 100%}.livebox input{flex:1;min-width:0}}
+
+/* brand + controls polish */
+body::before{content:"";position:absolute;inset:0 0 auto 0;height:360px;z-index:-1;background:radial-gradient(900px 260px at 18% -40px,var(--glow),transparent 70%),radial-gradient(700px 220px at 92% -20px,rgba(22,163,74,.12),transparent 70%);pointer-events:none}
+header{padding-top:30px}
+.brand{display:flex;align-items:center;gap:14px}
+.brand .mark{width:54px;height:54px;flex:0 0 auto;filter:drop-shadow(0 6px 14px var(--glow))}
+h1{font-family:"Space Grotesk",Inter,system-ui,sans-serif;font-size:38px;font-weight:700;letter-spacing:-.03em;line-height:1.05}
+h1 span{font-weight:500;color:var(--mute)}
+h1 b{background:linear-gradient(100deg,var(--accent),#16a34a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:17px;max-width:44em;margin-top:10px}
+.badge{font-size:12px}
+.bar{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow);gap:10px 12px}
+button{border-radius:10px;font-weight:600;transition:transform .08s,border-color .15s,box-shadow .15s,filter .15s}
+button:active:not(:disabled){transform:translateY(1px)}
+button.primary{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:linear-gradient(180deg,var(--accent),color-mix(in srgb,var(--accent) 82%,#000));box-shadow:0 4px 14px var(--glow)}
+button.primary svg,button.live svg{width:15px;height:15px;flex:0 0 auto}
+button.live{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:var(--okbg);color:var(--ok);border-color:var(--ok)}
+button.live:hover:not(:disabled){background:var(--ok);color:#fff;border-color:var(--ok)}
+select{border-radius:10px;padding:9px 10px}
+input{border-radius:10px;padding:9px 12px;min-width:170px}
+input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.chip{font-family:"JetBrains Mono",ui-monospace,monospace;font-weight:600;font-size:12.5px}
+.panel h2,.stat .lbl,.how-toggle{font-family:"Space Grotesk",Inter,sans-serif}
+.stat{transition:border-color .2s}
+.tab{font-family:"Space Grotesk",Inter,sans-serif;font-size:15px}
+footer{max-width:1200px;margin:0 auto;padding:0 16px 40px;color:var(--mute);font-size:13px;display:flex;flex-wrap:wrap;gap:6px 16px}
+@media(max-width:600px){h1{font-size:28px}.brand .mark{width:40px;height:40px}.sub{font-size:15.5px}.bar{padding:8px}}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="logo" viewBox="0 0 64 64"><path fill="#5B5BD6" d="M2 20H14V40L24 50H30L40 40V20H30L46 4L62 20H52V44L36 60H18L2 44Z"/><path fill="#16A34A" d="M17 33L25 41L38 28L33 23L25 31L22 28Z"/></symbol></svg>
 <header>
-  <h1>UpgradePilot</h1>
+  <div class="brand"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#logo"/></svg><h1><span>Upgrade</span><b>Pilot</b></h1></div>
   <p class="sub">An agent that migrates a breaking dependency upgrade and proves it with the project's own unchanged tests.</p>
   <ul class="badges" aria-label="Powered by">
     <li class="badge">Nemotron 3 Super</li><li class="badge">Nemotron 3.5 Lightning</li><li class="badge">Nebius Token Factory</li><li class="badge">Tavily</li>
@@ -187,12 +219,12 @@ a{color:var(--accent)}
   </section>
   <div class="bar">
     <span class="chip" id="fixture">pydantic 1.10.27 → 2.14.2</span>
-    <button class="primary" id="play">▶ Play recorded run</button>
+    <button class="primary" id="play"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>Play recorded run</button>
     <select id="speed" aria-label="Replay speed" title="Replay speed"><option value="1">1× speed</option><option value="2" selected>2× speed</option><option value="4">4× speed</option><option value="8">8× speed</option></select>
     <div class="livebox" id="liveBox" hidden>
       <div class="codewrap">
         <input id="code" type="password" placeholder="Access code" aria-label="Access code for live runs" aria-describedby="codeNote" autocomplete="off">
-        <button id="live">Run live</button>
+        <button class="live" id="live"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 1 3 9h4l-1 6 7-8H9z" fill="currentColor"/></svg>Run live</button>
       </div>
       <div class="codenote" id="codeNote" role="alert" hidden></div>
     </div>
@@ -237,6 +269,7 @@ a{color:var(--accent)}
   </div>
   <p class="note">Passing means "passes this regression suite on the target version with the tests unmodified", not a guarantee that behaviour is preserved. Token counts are measured from the API; dollar figures are estimates from Token Factory catalog prices. Runs execute our bundled demo project only.</p>
 </main>
+<footer><span>UpgradePilot · MIT licensed</span><a href="https://github.com/Namans12/Nebius" target="_blank" rel="noopener noreferrer">Source on GitHub</a><span>Built for the Nebius × NVIDIA hackathon with Nemotron, Nebius Token Factory and Tavily</span></footer>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -656,6 +689,10 @@ howBtn.onclick = () => setHow(howBtn.getAttribute("aria-expanded") !== "true");
 setHow(innerWidth > 600);
 
 reset(); showPlaceholder(); setBusy(false);
+try {  // judges' link: https://…/#code=XYZ fills the field; the fragment never reaches the server
+  const m = /[#&]code=([^&]+)/.exec(location.hash);
+  if (m) { $("#code").value = decodeURIComponent(m[1]); history.replaceState(null, "", location.pathname + location.search); }
+} catch (e) {}
 fetch("/api/config").then(r => r.json()).then(c => {
   $("#liveBox").hidden = !c.live_enabled; hasRec = !!c.has_recording; setBusy(busy);
   if (c.fixture) $("#fixture").textContent = `${c.fixture.package || "pydantic"} ${c.fixture.from} → ${c.fixture.to}`;

@@ -9,7 +9,9 @@ so it cannot read the server's /proc/<pid>/environ.
 import hashlib
 import os
 import re
+import resource
 import shutil
+import signal
 import subprocess
 import tempfile
 from pathlib import Path
@@ -48,13 +50,34 @@ def _env(home: Path) -> dict:
             "PYTHONDONTWRITEBYTECODE": "1"}
 
 
+def _limits() -> None:
+    """Runs in the child before exec: cap CPU time, open files, file size and address space."""
+    for res, val in ((resource.RLIMIT_CPU, 150), (resource.RLIMIT_NOFILE, 256),
+                     (resource.RLIMIT_FSIZE, 50 * 2**20), (resource.RLIMIT_AS, 3 * 2**30)):
+        try:
+            resource.setrlimit(res, (val, val))
+        except (ValueError, OSError):  # e.g. RLIMIT_AS is not enforceable on macOS
+            pass
+
+
 def _run(cmd: list, work: Path, timeout: int) -> subprocess.CompletedProcess:
     kw = {}
     uid = _sandbox_uid()
     if uid is not None:
         kw = {"user": uid, "group": uid, "extra_groups": []}
-    return subprocess.run(cmd, cwd=work, env=_env(work.parent), capture_output=True, text=True,
-                          timeout=timeout, **kw)
+    # own session so a timeout kills the whole process group, grandchildren included
+    proc = subprocess.Popen(cmd, cwd=work, env=_env(work.parent), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            text=True, start_new_session=True, preexec_fn=_limits, **kw)
+    try:
+        out, err = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            proc.kill()
+        proc.communicate()
+        raise
+    return subprocess.CompletedProcess(cmd, proc.returncode, out, err)
 
 
 def _purge_caches(work: Path) -> None:

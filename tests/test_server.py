@@ -43,12 +43,27 @@ def test_recording(client, server):
     assert client.get("/api/recording").status_code == (200 if server.RECORDING.exists() else 404)
 
 
-def test_wrong_code_is_403_and_delayed(live, client, monkeypatch):
-    monkeypatch.setattr(live, "FAIL_DELAY_SECONDS", 0.5)
-    t = time.time()
+def test_wrong_code_is_403(live, client):
     r = client.post("/api/run", json={"access_code": "nope"})
-    assert r.status_code == 403 and time.time() - t >= 0.45
+    assert r.status_code == 403
     assert not live._lock.locked() and live._day["count"] == 0
+
+
+def test_too_many_wrong_codes_get_429_even_for_the_right_code(live, client):
+    for _ in range(live.FAIL_LIMIT):
+        assert client.post("/api/run", json={"access_code": "nope"}).status_code == 403
+    assert client.post("/api/run", json={"access_code": "nope"}).status_code == 429
+    assert client.post("/api/run", json={"access_code": "testcode"}).status_code == 429  # window still closed
+
+
+def test_oversized_code_is_rejected(live, client):
+    assert client.post("/api/run", json={"access_code": "x" * 5000}).status_code == 422
+
+
+def test_security_headers_and_no_docs(client):
+    r = client.get("/")
+    assert r.headers["x-frame-options"] == "DENY" and "default-src 'self'" in r.headers["content-security-policy"]
+    assert client.get("/docs").status_code == 404 and client.get("/openapi.json").status_code == 404
 
 
 def test_run_disabled_without_access_code(live, client, monkeypatch):

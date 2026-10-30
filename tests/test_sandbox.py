@@ -1,3 +1,5 @@
+import sys
+import time
 import os
 import subprocess
 from pathlib import Path
@@ -56,7 +58,18 @@ def test_sandbox_uid_only_for_root(monkeypatch):
 
 def test_subprocess_drops_privileges_when_configured(monkeypatch, tmp_path):
     seen = []
-    monkeypatch.setattr(sandbox.subprocess, "run", lambda *a, **kw: seen.append(kw) or subprocess.CompletedProcess(a, 0, "", ""))
+
+    class FakeProc:
+        returncode = 0
+        pid = 0
+
+        def __init__(self, *a, **kw):
+            seen.append(kw)
+
+        def communicate(self, timeout=None):
+            return "", ""
+
+    monkeypatch.setattr(sandbox.subprocess, "Popen", FakeProc)
     sandbox._run(["true"], tmp_path, 5)
     assert "user" not in seen[-1]
     monkeypatch.setattr(sandbox, "_sandbox_uid", lambda: 65534)
@@ -182,3 +195,26 @@ def test_planted_bytecode_is_purged_before_tests(work):
     (work / "tests" / "__pycache__" / "test_models.cpython-312.pyc").write_bytes(b"junk")
     sandbox.run_tests(work, helpers.PY_OLD)
     assert not (work / "tests" / "__pycache__").exists()
+
+
+def test_timeout_kills_grandchildren(tmp_path):
+    marker = tmp_path / "alive"
+    code = f"import subprocess,time;subprocess.Popen(['sh','-c','sleep 2; touch {marker}']);time.sleep(30)"
+    with pytest.raises(subprocess.TimeoutExpired):
+        sandbox._run([sys.executable, "-c", code], tmp_path, 1)
+    time.sleep(2.5)
+    assert not marker.exists()
+
+
+@pytest.mark.parametrize("snippet", ["import os\n", "from sys import modules\n", "x = eval('1')\n", "import ctypes\n",
+                                      "os._exit(0)\n", "f = open('x')\n"])
+def test_verify_rejects_process_escape_hatches(snippet):
+    import re
+    hits = [label for pat, label in verify.BANNED if re.search(pat, snippet, re.M)]
+    assert hits, snippet
+
+
+def test_verify_accepts_clean_model_code():
+    import re
+    clean = "from pydantic import BaseModel, field_validator\n\nclass A(BaseModel):\n    x: int\n    def f(self):\n        return self.model_dump()\n"
+    assert not [1 for pat, _ in verify.BANNED if re.search(pat, clean, re.M)]

@@ -15,22 +15,24 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from .runner import DEMO, ROOT, run_preset
+from .sandbox import _sandbox_uid as sandbox_uid
 
 load_dotenv(ROOT / ".env")  # neither call overrides variables that are already set
 load_dotenv(ROOT.parent / ".env")
 
 WEB = ROOT / "web"
 RECORDING = ROOT / "recordings" / "pydantic_run.json"
-MAX_LIVE_RUNS_PER_DAY = int(os.environ.get("UP_MAX_LIVE_RUNS", "15"))
+MAX_LIVE_RUNS_PER_DAY = int(os.environ.get("UP_MAX_LIVE_RUNS", "30"))
 RUN_TTL_SECONDS = 300  # a finished run stays replayable this long, then is evicted
 PING_SECONDS = 15  # SSE keep-alive so proxies don't drop an idle stream
-FAIL_DELAY_SECONDS = 0.5  # slows access-code guessing
+FAIL_WINDOW_SECONDS, FAIL_LIMIT = 60, 10  # at most this many wrong codes per window, then 429 until it passes
 
 log = logging.getLogger("upgradepilot")
-app = FastAPI(title="UpgradePilot")
+app = FastAPI(title="UpgradePilot", docs_url=None, redoc_url=None, openapi_url=None)
 RUNS: dict = {}
 _lock = threading.Lock()  # held for the duration of a live run
 _gate = threading.Lock()  # makes "check daily cap + take run lock + count" one step
+_fails: list = []  # monotonic times of recent wrong codes
 _day = {"date": time.strftime("%Y-%m-%d"), "count": 0}
 
 
@@ -43,6 +45,8 @@ def _preflight() -> str | None:
     missing = [k for k in ("NEBIUS_API_KEY", "TAVILY_API_KEY") if not os.environ.get(k, "").strip()]
     if missing:
         return f"live runs are not configured on this server (missing {', '.join(missing)})"
+    if os.geteuid() == 0 and sandbox_uid() is None:  # root without the uid drop would expose the server's keys to model-run code
+        return "live runs are disabled: running as root without UP_SANDBOX_UID"
     for name in (".venv-old", ".venv-new"):
         if not (DEMO / name / "bin" / "python").exists():
             return f"live runs are not available: demo/{name} is missing (run scripts/build_envs.sh)"
@@ -53,9 +57,24 @@ def _spawn(fn) -> None:
     threading.Thread(target=fn, daemon=True).start()
 
 
+@app.middleware("http")
+async def security_headers(request, call_next):
+    resp = await call_next(request)
+    resp.headers.update({
+        "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "no-referrer",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                                   "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"})
+    return resp
+
+
 @app.get("/")
 def index():
     return FileResponse(WEB / "index.html")
+
+
+@app.get("/favicon.svg")
+def favicon():
+    return FileResponse(WEB / "favicon.svg", media_type="image/svg+xml")
 
 
 @app.get("/api/config")
@@ -75,10 +94,18 @@ def recording():
 
 @app.post("/api/run")
 def start(req: StartRequest):
+    if len(req.access_code) > 256:
+        raise HTTPException(422, "access code too long")
     expected = os.environ.get("UP_ACCESS_CODE", "")
+    now = time.monotonic()
+    with _gate:
+        _fails[:] = [t for t in _fails if now - t < FAIL_WINDOW_SECONDS]
+        if len(_fails) >= FAIL_LIMIT:
+            raise HTTPException(429, "too many wrong access codes; wait a minute")
     if not expected or not secrets.compare_digest(req.access_code.encode("utf-8", "surrogatepass"),
                                                     expected.encode("utf-8", "surrogatepass")):
-        time.sleep(FAIL_DELAY_SECONDS)
+        with _gate:
+            _fails.append(now)
         raise HTTPException(403, "live runs need the access code (see the README); the recorded run needs none")
     problem = _preflight()
     if problem:

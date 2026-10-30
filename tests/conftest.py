@@ -26,7 +26,7 @@ def server(monkeypatch):
     from upgradepilot import server as s
     s.RUNS.clear()
     s._day.update(date=time.strftime("%Y-%m-%d"), count=0)
-    monkeypatch.setattr(s, "FAIL_DELAY_SECONDS", 0)
+    s._fails.clear()
     yield s
     deadline = time.time() + 5
     while s._lock.locked() and time.time() < deadline:

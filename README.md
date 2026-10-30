@@ -1,4 +1,6 @@
-# UpgradePilot
+<p align="center"><img src="docs/logo.png" alt="UpgradePilot logo" width="96"></p>
+
+<h1 align="center">UpgradePilot</h1>
 
 [![CI](https://github.com/Namans12/Nebius/actions/workflows/ci.yml/badge.svg)](https://github.com/Namans12/Nebius/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
