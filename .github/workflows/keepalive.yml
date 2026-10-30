@@ -1,0 +1,11 @@
+# Pings the free-tier demo so judges don't hit a cold start. Safe to delete after judging.
+name: keepalive
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS --max-time 60 https://upgradepilot.onrender.com/api/config
