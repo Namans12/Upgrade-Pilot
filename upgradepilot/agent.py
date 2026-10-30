@@ -194,7 +194,7 @@ class Pipeline:
         return self._report(work, original_app, outcome, reason, v)
 
     def _condense(self, page: str, failures: str, package: str, old: str, new: str) -> str:
-        msg = self._chat("condense docs", self.helper_model, max_tokens=1200, temperature=0.1, messages=[
+        msg = self._chat("condense docs", self.helper_model, max_tokens=3000, temperature=0.1, messages=[
             {"role": "system", "content": "You extract concise migration checklists from documentation."},
             {"role": "user", "content": f"Official {package} {old}->{new} migration page (may be truncated):\n\n{page}\n\n"
                 f"Test failures observed after the bump:\n{failures[:2500]}\n\n"
@@ -206,6 +206,8 @@ class Pipeline:
         diff = []
         for rel, old_text in original_app.items():
             new_text = (work / rel).read_text() if (work / rel).exists() else ""
+            old_text = old_text if old_text.endswith("\n") or not old_text else old_text + "\n"
+            new_text = new_text if new_text.endswith("\n") or not new_text else new_text + "\n"
             diff += difflib.unified_diff(old_text.splitlines(True), new_text.splitlines(True), f"a/{rel}", f"b/{rel}")
         report = {"outcome": outcome, "reason": reason, "diff": "".join(diff), "verification": v,
                   "sources": sorted(set(s for s in self.sources if s)), "ledger": self.ledger.summary(),

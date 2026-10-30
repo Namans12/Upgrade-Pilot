@@ -16,7 +16,7 @@ def main() -> None:
     load_dotenv(ROOT.parent / ".env")
     load_dotenv(ROOT / ".env")
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default=LIGHTNING)
+    ap.add_argument("--model", default="nvidia/nemotron-3-super-120b-a12b")
     ap.add_argument("--helper-model", default=LIGHTNING)
     ap.add_argument("--fallback", default="", help="model to escalate to when repairs stall")
     ap.add_argument("--max-turns", type=int, default=40)

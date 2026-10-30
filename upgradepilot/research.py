@@ -24,8 +24,17 @@ def extract_page(url: str) -> str:
 
 
 def find_migration_guide(package: str, old: str, new: str) -> dict:
-    """Search for the official migration guide and extract the best page."""
-    hits = search_docs(f"{package} {old} to {new} migration guide breaking changes")
+    """Search for the official migration guide (official docs domain first) and extract the best page."""
+    query = f"{package} migration guide {old} to {new} breaking changes"
+    hits = []
+    try:
+        hits = _client().search(query, max_results=5, search_depth="basic", include_domains=[f"docs.{package}.dev"])["results"]
+        hits = [{"title": r["title"], "url": r["url"], "snippet": r["content"][:400]} for r in hits]
+    except Exception:
+        pass
+    if not hits:
+        hits = search_docs(query)
     official = [h for h in hits if package in h["url"].split("/")[2] or "docs" in h["url"]] or hits
-    page = extract_page(official[0]["url"]) if official else ""
-    return {"query_hits": hits, "source_url": official[0]["url"] if official else None, "page": page}
+    url = official[0]["url"].split("#")[0] if official else None
+    page = extract_page(url) if url else ""
+    return {"query_hits": hits, "source_url": url, "page": page}

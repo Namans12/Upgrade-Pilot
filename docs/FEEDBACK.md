@@ -14,7 +14,7 @@ Notes from building UpgradePilot on 30 October 2026. Observed, not assumed; plea
 ## NVIDIA Nemotron
 
 1. **Tool calling worked first try** on Lightning and Super: valid JSON arguments for a function schema on the first request.
-2. **Lightning is cheap but stalls on multi-file repairs.** In our fixture it fixed models and tags, then re-ran the same failing tests without editing. It passed 0 of 5 repeated runs (all hit the 40-turn limit, ~$0.03 each), and 0 of 2 more when allowed to escalate to Super. Super passed 5 of 5 in the benchmark (mean $0.079, 44–80 s) and 10 of 11 counting every run of the final loop; the one failure ran 41 calls for $0.23 before the turn limit, so runaway cost is a real tail risk for agent loops.
+2. **Lightning is cheap but stalls on multi-file repairs.** In our fixture it fixed models and tags, then re-ran the same failing tests without editing. It passed 0 of 5 repeated runs (all hit the 40-turn limit, ~$0.03 each), and 0 of 2 more when allowed to escalate to Super. Super passed 5 of 5 in the benchmark (mean $0.079, 44–80 s) and 13 of 14 counting every run of the final loop; the one failure ran 41 calls for $0.23 before the turn limit, so runaway cost is a real tail risk for agent loops.
 3. **Ultra did not help here.** It passed 0 of 3 (41 calls each, $0.47–$0.71, roughly 6–9× a Super run) and hit the turn limit every time. One task and few runs, so we make no general claim. It may do better with a different prompt or harness; we did not tune per model.
 4. **Reasoning/`<think>` handling.** We did not need to strip reasoning from responses, but we did not test long-running reasoning modes. Nothing to report.
 5. **Avoid `deepagents` with Ultra.** The agent-cost cookbook documents a `NemotronPolicyNudgeMiddleware` issue (deepagents issue 5982). We sidestepped it by writing a small tool loop directly against the OpenAI SDK, which also made token accounting simple.
@@ -28,3 +28,6 @@ Notes from building UpgradePilot on 30 October 2026. Observed, not assumed; plea
 ## Docs and process
 
 - The hackathon page said "about 20 hours to deadline" while the Official Rules gave 10:00 am PT; they agree (10:30 pm IST), but the time zone on the Devpost page was easy to misread.
+
+## Tavily: result relevance
+An unrestricted search for "pydantic migration guide 1.10.27 to 2.14.2" returned blogs and a Pydantic *AI* changelog on our first deployed run, and the agent still passed but cited the wrong page. Using `include_domains=["docs.pydantic.dev"]` returned the official migration page first. A documented pattern for "official docs only" retrieval would help agent builders.

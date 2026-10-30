@@ -18,7 +18,7 @@ The bundled demo upgrades a small order service from pydantic 1.10.27 to 2.14.2:
 - **App:** FastAPI with server-sent events and a single-page UI (timeline, diff, verification, ledger), Docker image with both environments prebuilt.
 
 ## What we measured
-Same task, same 40-turn limit, repeated: Super passed 5 of 5 (mean about $0.08 per run, 44–80 s); Lightning passed 0 of 5 (about $0.03, stalls after fixing part of the code); Ultra passed 0 of 2 ($0.63–0.71). Counting every run of the final loop Super passed 10 of 11, and its one failure cost $0.23. Small samples on one task, reported as such.
+Same task, same 40-turn limit, repeated: Super passed 5 of 5 (mean about $0.08 per run, 44–80 s); Lightning passed 0 of 5 (about $0.03, stalls after fixing part of the code); Ultra passed 0 of 2 ($0.63–0.71). Counting every run of the final loop Super passed 13 of 14, and its one failure cost $0.23. Small samples on one task, reported as such.
 
 ## Challenges
 - A first demo built on `.dict()` / `.parse_obj()` would have stayed green, since v2 only deprecates them. We rebuilt the project around real breaking changes and verified the failures before writing any agent code.
