@@ -1,18 +1,19 @@
-# Demo video script (target 2:30, hard limit 3:00)
+# Demo video narration
 
-The final video is produced with Remotion from a real recorded live run of the deployed UI (https://upgradepilot.onrender.com) plus Piper TTS narration. The table below is the narration source; the Remotion project and Piper scripts are kept outside this repository. If you record by hand instead, wake the free Render instance first (open the URL a minute before recording) and use the replay or a live run if you have the access code from the Devpost testing instructions.
+The demo video (about 2 minutes) shows a real live run on the deployed site (https://upgradepilot.onrender.com), time-lapsed through the repair step, with burned-in captions. It was produced with Remotion and Playwright's screen recording; the narration is synthetic (Kokoro TTS, open source). The video tooling is kept outside this repository.
 
-| Time | On screen | Say |
-|---|---|---|
-| 0:00-0:20 | Title, links row, the stat cards | "Dependency bots open a pull request that goes red and stop, because the breaking changes live in a migration guide nobody reads. UpgradePilot reads the guide, fixes the code, and proves it with the project's own unchanged tests." |
-| 0:20-0:45 | Run starts; baseline 21 passed, then 3 collection errors after the bump (stepper and failures strip) | "This is a small order service on pydantic 1.10.27 with 21 passing tests. Bumping to 2.14.2 breaks it: three collection errors block every test, and more failures appear after the first fix. These are real v2 changes, not renamed methods." |
-| 0:45-1:15 | Research tab: Tavily hits, extracted page, Lightning checklist | "It searches and extracts the official migration page with Tavily, then Nemotron Lightning on Nebius Token Factory condenses it into a checklist for the failures we actually saw." |
-| 1:15-1:50 | Timeline: Super tool calls (read_file, write_file, run_tests); failures strip falling | "Nemotron Super runs the repair loop with tools: it reads files, writes only Python files under the app folder, and runs the tests on the real target version until they pass." |
-| 1:50-2:15 | Integrity checks all passed, Verification tab | "Then it checks it didn't cheat: tests run without conftest files, every file outside app is hashed, the installed version is 2.14.2, the pass count matches the baseline, and no deprecated v1 API or pydantic.v1 shim is left in the code." |
-| 2:15-2:40 | Diff tab, then Cost ledger tab | "The result is a diff, cited sources, and a measured token ledger. About eight cents per run. We tried Lightning and Ultra for the repair too: Lightning passed 0 of 5, Ultra 0 of 3, Super 5 of 5 in the archived benchmark, and 16 of 17 counting every run of the final loop. Small samples, reported as they came." |
-| 2:40-2:55 | README limits section | "Limits: not a security sandbox, one migration, and passing a test suite is not proof of preserved behaviour: in this very run the agent dropped an error-code mapping that no test covers. Code is MIT on GitHub. Thanks." |
+Narration, in order:
+
+1. Dependency upgrades break things. A bot opens a pull request, the tests go red, and it stops, because the fix lives in a migration guide nobody has read. UpgradePilot reads the guide, fixes the code, and proves it with the project's own, unchanged tests.
+2. This is a real, live run on the deployed site. A small order service on pydantic one point ten has twenty one passing tests. UpgradePilot bumps it to pydantic two point fourteen, and the same tests break: three collection errors straight away.
+3. Next, Tavily searches the official docs and extracts the migration page. Nemotron Lightning, on Nebius Token Factory, condenses it into a checklist for the failures we actually saw.
+4. Then Nemotron Super takes over, with tools. It reads files, edits only the app folder, and runs the tests on the real target version, over and over. Watch the failures fall, until none are left.
+5. Finally it checks that it did not cheat. The tests are byte for byte identical, the installed version is the target, and no deprecated version one code is left. Twenty one of twenty one pass, for under ten cents.
+6. You get the diff, the cited source, and a measured token ledger. Token counts come straight from the API. Dollar figures are estimates from catalog prices.
+7. We also compared models on the same task. Nemotron Super passed all five benchmark runs. Lightning is cheaper per run, but passed none. Ultra passed none, at six to nine times the cost. Small samples, one task.
+8. A few limits. This isolates dependencies, it is not a security sandbox, and it handles one migration. And a green test suite shows the tests pass, not that every behaviour is preserved, so always review the diff.
+9. UpgradePilot is open source under the MIT license. Try the recorded run at upgradepilot dot onrender dot com, and find the code on GitHub. Thanks for watching.
 
 Notes:
-- If the video shows the replay rather than a live run, say "Recorded run" aloud so the label on screen matches what you say.
-- A live run takes about 45-80 s of model time; speed it up in editing or cut to the result.
-- Upload to YouTube as **Public** (not Unlisted), title "UpgradePilot: Nemotron on Nebius migrates a breaking dependency upgrade".
+- The footage is a live run, not the replay; the on-screen label says "LIVE RUN" and the repair stage is shown time-lapsed.
+- A live run takes about 2.5 to 4.5 minutes end to end on the free Render instance.
