@@ -14,8 +14,8 @@ Notes from building UpgradePilot on 30 October 2026. Observed, not assumed; plea
 ## NVIDIA Nemotron
 
 1. **Tool calling worked first try** on Lightning and Super: valid JSON arguments for a function schema on the first request.
-2. **Lightning is cheap but stalls on multi-file repairs.** In our fixture it fixed models and tags, then re-ran the same failing tests five times without editing. Two full attempts did not finish in 40 turns, even with escalation to Super. Super finished 3 of 3 attempts.
-3. **Ultra did not help here.** One attempt used 41 calls for $0.47 (about 6× a Super run) and did not finish in 40 turns. One sample only, so we make no general claim.
+2. **Lightning is cheap but stalls on multi-file repairs.** In our fixture it fixed models and tags, then re-ran the same failing tests without editing. It passed 0 of 5 repeated runs (all hit the 40-turn limit, ~$0.03 each), and 0 of 2 more when allowed to escalate to Super. Super passed 5 of 5 (mean $0.079, 44–80 s).
+3. **Ultra did not help here.** It passed 0 of 3 (41 calls each, $0.47–$0.71, roughly 6–9× a Super run) and hit the turn limit every time. One task and few runs, so we make no general claim. It may do better with a different prompt or harness; we did not tune per model.
 4. **Reasoning/`<think>` handling.** We did not need to strip reasoning from responses, but we did not test long-running reasoning modes. Nothing to report.
 5. **Avoid `deepagents` with Ultra.** The agent-cost cookbook documents a `NemotronPolicyNudgeMiddleware` issue (deepagents issue 5982). We sidestepped it by writing a small tool loop directly against the OpenAI SDK, which also made token accounting simple.
 

@@ -35,13 +35,15 @@ All calls go through the OpenAI-compatible endpoint `https://api.tokenfactory.ne
 
 Counts are for the final version of the loop. Two earlier Super runs on a previous version (one reached green but the loop didn't notice, one stopped at a 25-turn limit with 20/21 passing) are excluded.
 
-| Repair model | Result | Calls | Est. cost | Model time |
-|---|---|---|---|---|
-| Super | passed, passed, passed (incl. the recorded run) | 27–29 | $0.080–0.086 | 72–77 s |
-| Lightning, escalating to Super when stalled | did not finish in 40 turns (×2) | 41 | $0.034–0.101 | 61–92 s |
-| Ultra (`Nemotron-3-Ultra-550b-a55b`) | did not finish in 40 turns (×1) | 41 | $0.47 | 81 s |
+Each row is repeated independent runs of the same task with a 40-turn limit (`scripts/bench.py`, results in `runs/bench.json`).
 
-Three or four runs per row is not a benchmark. It is why Lightning does the cheap reading and Super does the repair, and why Ultra is not in the default path. Input tokens dominate cost (about 240–330k prompt tokens versus 8–10k completion tokens per run).
+| Repair model | Passed | Calls | Est. cost per run | Model time |
+|---|---|---|---|---|
+| Super (`nemotron-3-super-120b-a12b`) | **5 / 5** | 21–34 | $0.043–0.122 (mean $0.079) | 44–80 s |
+| Lightning (`Nemotron-3_5-Lightning`) | 0 / 5, all hit the turn limit | 41 | $0.028–0.031 | 96–206 s |
+| Ultra (`Nemotron-3-Ultra-550b-a55b`) | 0 / 2, both hit the turn limit | 41 | $0.634–0.709 | 100–107 s |
+
+Earlier development runs agree (Super 3/3 more passes, Lightning with Super escalation 0/2, one more Ultra run 0/1 at $0.47) but are not included in the table. Five runs is not a rigorous benchmark and covers one task, but the gap is large. It is why Lightning does the cheap reading and Super does the repair, and why Ultra is not in the default path. Input tokens dominate cost (roughly 240–330k prompt tokens versus 8–10k completion tokens per run).
 
 ## Tavily
 
