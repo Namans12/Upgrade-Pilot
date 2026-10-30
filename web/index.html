@@ -584,6 +584,7 @@ function handle(ev) {
     case "done":
       finishSteps(d.outcome === "success");
       setNow(d.outcome === "success" ? "Done: migration verified" : `Finished: ${d.outcome}`, false);
+      if (mode_ === "live") mode("live", "LIVE RUN · finished, real run on Token Factory");
       showSummary(d); break;
     case "report":
       renderDiff(d.diff);
